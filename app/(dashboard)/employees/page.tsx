@@ -19,9 +19,14 @@ export default async function EmployeesPage() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">사원 관리</h1>
         {canManage && (
-          <Link href="/employees/new" className="rounded bg-black px-4 py-2 text-white">
-            + 사원 등록
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/employees/bulk-upload" className="rounded border px-4 py-2">
+              엑셀 일괄 등록
+            </Link>
+            <Link href="/employees/new" className="rounded bg-black px-4 py-2 text-white">
+              + 사원 등록
+            </Link>
+          </div>
         )}
       </div>
       <table className="w-full border-collapse text-sm">
