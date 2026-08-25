@@ -7,11 +7,16 @@ export async function GET(request: NextRequest) {
   const supabase = await createServerSupabase()
 
   if (code) {
-    const { data } = await supabase.auth.exchangeCodeForSession(code)
-    const user = data.user
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (user?.email) {
-      const result = await acceptInvitation(supabase, user.id, user.email)
+    if (error || !data.user) {
+      return NextResponse.redirect(
+        new URL('/login?error=auth_failed', request.url)
+      )
+    }
+
+    try {
+      const result = await acceptInvitation(supabase)
 
       if (!result.accepted) {
         await supabase.auth.signOut()
@@ -19,6 +24,11 @@ export async function GET(request: NextRequest) {
           new URL('/login?error=not_invited', request.url)
         )
       }
+    } catch {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(
+        new URL('/login?error=not_invited', request.url)
+      )
     }
   }
 
