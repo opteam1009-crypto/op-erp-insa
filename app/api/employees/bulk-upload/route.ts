@@ -29,10 +29,16 @@ export async function POST(request: NextRequest) {
   const rowErrors = [...errors]
 
   for (const [index, row] of rows.entries()) {
+    const departmentName = row.department.trim()
+    if (departmentName && !departmentByName.has(departmentName)) {
+      rowErrors.push({ row: index + 2, message: `알 수 없는 부서명: "${row.department}"` })
+      continue
+    }
+
     const parsed = employeeSchema.safeParse({
       employee_number: row.employee_number,
       name: row.name,
-      department_id: departmentByName.get(row.department) ?? null,
+      department_id: departmentByName.get(departmentName) ?? null,
       position: row.position,
       employment_type: row.employment_type,
       hire_date: row.hire_date,
