@@ -1,5 +1,5 @@
 create or replace function current_user_role() returns user_role
-language sql stable security definer as $$
+language sql stable security definer set search_path = public as $$
   select role from profiles where id = auth.uid();
 $$;
 
@@ -17,11 +17,12 @@ create policy "departments_write" on departments for all using (current_user_rol
 
 -- profiles: a user reads their own row; admin reads/writes all
 create policy "profiles_select_self" on profiles for select using (id = auth.uid() or current_user_role() = 'admin');
+create policy "profiles_insert_self" on profiles for insert with check (id = auth.uid());
 create policy "profiles_admin_write" on profiles for update using (current_user_role() = 'admin');
 
 -- invitations: admin only
 create policy "invitations_admin_all" on invitations for all using (current_user_role() = 'admin');
-create policy "invitations_service_read" on invitations for select using (true);
+create policy "invitations_self_read" on invitations for select using (email = (auth.jwt() ->> 'email'));
 
 -- employees: admin/staff manage, viewer read-only
 create policy "employees_select" on employees for select using (current_user_role() in ('admin', 'staff', 'viewer'));
