@@ -1,8 +1,14 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { permissions } from '@/lib/auth/permissions'
+import type { Role } from '@/lib/types'
 
 export default async function EmployeesPage() {
   const supabase = await createServerSupabase()
+  const { data: auth } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', auth.user!.id).single()
+  const canManage = profile ? permissions.canManageEmployees(profile.role as Role) : false
+
   const { data: employees } = await supabase
     .from('employees')
     .select('id, employee_number, name, employment_type, status, department_id, departments(name)')
@@ -12,9 +18,11 @@ export default async function EmployeesPage() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">사원 관리</h1>
-        <Link href="/employees/new" className="rounded bg-black px-4 py-2 text-white">
-          + 사원 등록
-        </Link>
+        {canManage && (
+          <Link href="/employees/new" className="rounded bg-black px-4 py-2 text-white">
+            + 사원 등록
+          </Link>
+        )}
       </div>
       <table className="w-full border-collapse text-sm">
         <thead>
