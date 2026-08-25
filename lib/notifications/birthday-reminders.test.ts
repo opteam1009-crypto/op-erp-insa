@@ -19,6 +19,15 @@ describe('getThisWeekBirthdays', () => {
     const result = getThisWeekBirthdays(employees, monday)
     expect(result).toEqual([])
   })
+
+  it('includes early-January birthdays when the week crosses a year boundary', () => {
+    // Mon Dec 28 2026 - Sun Jan 3 2027. An employee born Jan 2 must be matched
+    // against Jan 2 2027 (the actual date in this window), not Jan 2 2026.
+    const monday = new Date('2026-12-28')
+    const yearBoundaryEmployees = [{ id: '4', name: '박민수', birth_date: '1990-01-02' }]
+    const result = getThisWeekBirthdays(yearBoundaryEmployees, monday)
+    expect(result.map((e) => e.name)).toEqual(['박민수'])
+  })
 })
 
 describe('buildBirthdayMessage', () => {
