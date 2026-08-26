@@ -10,12 +10,17 @@ export default async function DocumentsPage() {
   const canDelete = permissions.canDeleteDocuments(user.role)
 
   const supabase = await createServerSupabase()
-  const { data: documents } = await supabase
+  const { data: documents, error: documentsError } = await supabase
     .from('documents')
     .select('*, franchise_stores(name)')
     .is('deleted_at', null)
     .order('year', { ascending: false })
     .order('month', { ascending: false })
+
+  if (documentsError) {
+    console.error('Failed to load documents:', documentsError)
+    return <p className="text-red-600">증빙 데이터를 불러오지 못했습니다. 관리자에게 문의하세요.</p>
+  }
 
   return (
     <div>

@@ -5,5 +5,6 @@
 -- unclassified rows are silently excluded rather than coerced into a default.
 alter table documents
   add column transaction_type text check (transaction_type in ('매출', '매입')),
-  add column amount numeric(14, 2),
-  add column franchise_store_id uuid references franchise_stores(id);
+  add column amount numeric(14, 2) check (amount is null or amount > 0),
+  add column franchise_store_id uuid references franchise_stores(id),
+  add constraint documents_amount_requires_type check (transaction_type is null or amount is not null);

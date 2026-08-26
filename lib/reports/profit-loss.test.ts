@@ -38,4 +38,23 @@ describe('calculateFranchiseBalances', () => {
     const result = calculateFranchiseBalances(docs)
     expect(result).toHaveLength(2)
   })
+
+  it('ignores documents with an unclassified transaction_type instead of booking them as 매입', () => {
+    const docsWithBadData: ClassifiedDocument[] = [
+      ...docs,
+      {
+        transaction_type: null,
+        amount: 999999,
+        year: 2026,
+        month: 8,
+        franchise_store_id: 'store-a',
+      } as unknown as ClassifiedDocument,
+    ]
+    const result = calculateFranchiseBalances(docsWithBadData)
+    expect(result).toEqual(
+      expect.arrayContaining([
+        { franchiseStoreId: 'store-a', totalSales: 1200000, totalPurchases: 300000, netBalance: 900000 },
+      ])
+    )
+  })
 })

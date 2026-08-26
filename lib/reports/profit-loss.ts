@@ -48,7 +48,7 @@ export function calculateFranchiseBalances(documents: ClassifiedDocument[]): Fra
     const entry = byStore.get(doc.franchise_store_id) ?? { totalSales: 0, totalPurchases: 0 }
     if (doc.transaction_type === '매출') {
       entry.totalSales += doc.amount
-    } else {
+    } else if (doc.transaction_type === '매입') {
       entry.totalPurchases += doc.amount
     }
     byStore.set(doc.franchise_store_id, entry)

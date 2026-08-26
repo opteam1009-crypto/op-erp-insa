@@ -20,7 +20,7 @@ export default async function ProfitLossPage({
   const month = Number(monthParam) || now.getMonth() + 1
 
   const supabase = await createServerSupabase()
-  const [{ data: documents }, { data: franchiseStores }] = await Promise.all([
+  const [{ data: documents, error: documentsError }, { data: franchiseStores, error: storesError }] = await Promise.all([
     supabase
       .from('documents')
       .select('transaction_type, amount, year, month, franchise_store_id')
@@ -28,6 +28,11 @@ export default async function ProfitLossPage({
       .not('transaction_type', 'is', null),
     supabase.from('franchise_stores').select('id, name'),
   ])
+
+  if (documentsError || storesError) {
+    console.error('Failed to load profit-loss data:', documentsError ?? storesError)
+    return <p className="text-red-600">손익 데이터를 불러오지 못했습니다. 관리자에게 문의하세요.</p>
+  }
 
   const classified = (documents ?? []) as ClassifiedDocument[]
   const periodTotals = calculatePeriodTotals(classified, year, month)
