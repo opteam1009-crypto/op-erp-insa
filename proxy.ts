@@ -2,6 +2,17 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { isPublicPath, isAdminOnlyPath } from '@/lib/auth/route-guard'
 
+/**
+ * Copies any auth cookies Supabase wrote onto `source` (via setAll) over to a redirect
+ * response. Returning a freshly-constructed NextResponse.redirect() without doing this
+ * silently discards a just-refreshed session token.
+ */
+function redirectTo(path: string, request: NextRequest, source: NextResponse) {
+  const redirectResponse = NextResponse.redirect(new URL(path, request.url))
+  source.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
+  return redirectResponse
+}
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next()
 
@@ -14,7 +25,11 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => response.cookies.set(name, value))
+          // `options` carries maxAge/sameSite/path/secure — dropping it downgrades the
+          // refreshed auth cookie to a browser-session cookie (logout on browser restart).
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     }
@@ -24,7 +39,7 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   if (!user && !isPublicPath(pathname)) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return redirectTo('/login', request, response)
   }
 
   if (user && isAdminOnlyPath(pathname)) {
@@ -35,7 +50,7 @@ export async function proxy(request: NextRequest) {
       .single()
 
     if (profile?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/employees', request.url))
+      return redirectTo('/employees', request, response)
     }
   }
 
