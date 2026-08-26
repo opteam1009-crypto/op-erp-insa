@@ -30,6 +30,8 @@ Next.js 16 (App Router) + TypeScript + Tailwind v4 + Supabase (Postgres / Auth /
 | 4 | `0004_payroll_update_policy.sql` | `payroll_records` UPDATE 정책 (upsert 용) |
 | 5 | `0005_birthday_notification_unique.sql` | 생일 알림 중복 방지 partial unique index |
 | 6 | `0006_drop_profiles_insert_self.sql` | **보안**: 자가 admin 승격을 허용하던 죽은 정책 제거 + profiles DELETE 정책 |
+| 7 | `0007_salary_dates.sql` | 연봉 협상 관련 날짜 컬럼(`salary_review_date`, `salary_announce_date`) 추가 |
+| 8 | `0008_notification_log_salary_types.sql` | `notification_log` type CHECK 제약에 `salary_review`/`salary_announce` 포함하도록 확장 |
 
 그 다음 `supabase/seed.sql` 을 실행해 부서 목록을 넣습니다.
 `seed.sql` 의 부서 목록은 플레이스홀더이므로 실제 부서명으로 교체 후 실행하세요.

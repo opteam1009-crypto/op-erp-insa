@@ -16,10 +16,15 @@ export async function GET(request: NextRequest) {
   )
 
   const today = format(new Date(), 'yyyy-MM-dd')
-  const { data: employees } = await supabase
+  const { data: employees, error: employeesError } = await supabase
     .from('employees')
     .select('id, name, contract_review_date, contract_announce_date, salary_review_date, salary_announce_date')
     .eq('status', '재직')
+
+  if (employeesError) {
+    console.error('Failed to fetch employees for contract reminders:', employeesError)
+    return NextResponse.json({ error: employeesError.message }, { status: 500 })
+  }
 
   let sent = 0
 
@@ -40,7 +45,15 @@ export async function GET(request: NextRequest) {
         sent_for_date: check.date,
       })
 
-      if (logError) continue // already sent for this date (unique constraint)
+      if (logError) {
+        if (logError.code !== '23505') {
+          console.error(
+            `Failed to log notification for employee ${emp.id} (${check.kind}):`,
+            logError
+          )
+        }
+        continue // unique violation = already sent for this date; other errors are logged above but still skipped for this employee/date
+      }
 
       const daysLeft = differenceInCalendarDays(new Date(check.date), new Date(today))
       const message = buildReminderMessage(emp.name, check.kind, daysLeft)

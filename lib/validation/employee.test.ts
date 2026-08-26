@@ -41,4 +41,14 @@ describe('employeeSchema', () => {
     const result = employeeSchema.safeParse({ ...valid, salary_review_date: '2024/06/01' })
     expect(result.success).toBe(false)
   })
+
+  it('rejects a calendar-invalid hire_date', () => {
+    const result = employeeSchema.safeParse({ ...valid, hire_date: '2026-02-31' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a calendar-invalid contract_announce_date', () => {
+    const result = employeeSchema.safeParse({ ...valid, contract_announce_date: '2026-02-31' })
+    expect(result.success).toBe(false)
+  })
 })
