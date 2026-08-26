@@ -6,4 +6,5 @@ export const permissions = {
   canUploadDocuments: (role: Role) => role === 'admin' || role === 'staff',
   canDeleteDocuments: (role: Role) => role === 'admin',
   canManageUsers: (role: Role) => role === 'admin',
+  canManageFranchiseStores: (role: Role) => role === 'admin' || role === 'staff',
 } as const

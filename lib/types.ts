@@ -42,3 +42,10 @@ export interface PayrollRecord {
   parsed_data: Record<string, string | number>[] | null
   parse_status: 'parsed' | 'fallback' | 'pending'
 }
+
+export interface FranchiseStore {
+  id: string
+  name: string
+  status: '운영중' | '폐업'
+  created_at: string
+}

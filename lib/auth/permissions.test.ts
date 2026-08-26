@@ -24,4 +24,10 @@ describe('permissions', () => {
     expect(permissions.canManageUsers('admin')).toBe(true)
     expect(permissions.canManageUsers('staff')).toBe(false)
   })
+
+  it('allows admin and staff to manage franchise stores, blocks viewer', () => {
+    expect(permissions.canManageFranchiseStores('admin')).toBe(true)
+    expect(permissions.canManageFranchiseStores('staff')).toBe(true)
+    expect(permissions.canManageFranchiseStores('viewer')).toBe(false)
+  })
 })
