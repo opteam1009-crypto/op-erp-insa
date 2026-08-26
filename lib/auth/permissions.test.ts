@@ -30,4 +30,10 @@ describe('permissions', () => {
     expect(permissions.canManageFranchiseStores('staff')).toBe(true)
     expect(permissions.canManageFranchiseStores('viewer')).toBe(false)
   })
+
+  it('allows admin and staff to view profit/loss, blocks viewer', () => {
+    expect(permissions.canViewProfitLoss('admin')).toBe(true)
+    expect(permissions.canViewProfitLoss('staff')).toBe(true)
+    expect(permissions.canViewProfitLoss('viewer')).toBe(false)
+  })
 })

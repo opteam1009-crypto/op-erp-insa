@@ -31,6 +31,9 @@ export interface DocumentRecord {
   uploaded_by: string | null
   deleted_at: string | null
   created_at: string
+  transaction_type: '매출' | '매입' | null
+  amount: number | null
+  franchise_store_id: string | null
 }
 
 export interface PayrollRecord {

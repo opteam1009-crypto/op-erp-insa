@@ -6,6 +6,9 @@ export const documentMetaSchema = z.object({
   year: z.number().int().min(2000).max(2100),
   month: z.number().int().min(1).max(12),
   vendor_name: z.string().optional(),
+  transaction_type: z.enum(['매출', '매입']),
+  amount: z.number().positive('금액은 0보다 커야 합니다'),
+  franchise_store_id: z.string().uuid().nullable(),
 })
 
 export type DocumentMeta = z.infer<typeof documentMetaSchema>
