@@ -12,7 +12,7 @@ export default async function DocumentsPage() {
   const supabase = await createServerSupabase()
   const { data: documents } = await supabase
     .from('documents')
-    .select('*')
+    .select('*, franchise_stores(name)')
     .is('deleted_at', null)
     .order('year', { ascending: false })
     .order('month', { ascending: false })
@@ -36,6 +36,9 @@ export default async function DocumentsPage() {
             <th className="p-2">연/월</th>
             <th className="p-2">유형</th>
             <th className="p-2">거래처</th>
+            <th className="p-2">거래구분</th>
+            <th className="p-2">금액</th>
+            <th className="p-2">가맹점</th>
             <th className="p-2">파일</th>
             <th className="p-2"></th>
           </tr>
@@ -46,6 +49,9 @@ export default async function DocumentsPage() {
               <td className="p-2">{doc.year}-{String(doc.month).padStart(2, '0')}</td>
               <td className="p-2">{doc.doc_type}</td>
               <td className="p-2">{doc.vendor_name ?? '-'}</td>
+              <td className="p-2">{doc.transaction_type ?? '미분류'}</td>
+              <td className="p-2">{doc.amount != null ? doc.amount.toLocaleString('ko-KR') : '-'}</td>
+              <td className="p-2">{(doc.franchise_stores as unknown as { name: string } | null)?.name ?? '-'}</td>
               <td className="p-2">{doc.file_name}</td>
               <td className="p-2">
                 {canDelete && <DeleteButton id={doc.id} />}
