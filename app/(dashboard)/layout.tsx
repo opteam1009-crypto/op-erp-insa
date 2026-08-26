@@ -7,6 +7,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const navItems: { href: string; label: string }[] = [
     { href: '/employees', label: '사원 관리' },
+    { href: '/franchise-stores', label: '가맹점 관리' },
     ...(permissions.canViewPayroll(user.role) ? [{ href: '/payroll', label: '급여대장' }] : []),
     { href: '/documents', label: '증빙 관리' },
   ]
