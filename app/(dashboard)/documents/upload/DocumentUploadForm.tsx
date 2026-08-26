@@ -2,7 +2,12 @@
 
 import { useState } from 'react'
 
-export function DocumentUploadForm() {
+export interface FranchiseStoreOption {
+  id: string
+  name: string
+}
+
+export function DocumentUploadForm({ franchiseStores }: { franchiseStores: FranchiseStoreOption[] }) {
   const [message, setMessage] = useState<string | null>(null)
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
@@ -32,6 +37,28 @@ export function DocumentUploadForm() {
         <input type="number" name="month" min={1} max={12} defaultValue={now.getMonth() + 1} className="w-1/2 border p-2" required />
       </div>
       <input name="vendor_name" placeholder="거래처" className="w-full border p-2" />
+      <label className="block text-sm">
+        거래 구분
+        <select name="transaction_type" className="w-full border p-2" required>
+          <option value="매출">매출</option>
+          <option value="매입">매입</option>
+        </select>
+      </label>
+      <label className="block text-sm">
+        금액
+        <input type="number" name="amount" min={1} step="1" className="w-full border p-2" required />
+      </label>
+      <label className="block text-sm">
+        가맹점 (선택)
+        <select name="franchise_store_id" className="w-full border p-2" defaultValue="">
+          <option value="">가맹점 미지정</option>
+          {franchiseStores.map((store) => (
+            <option key={store.id} value={store.id}>
+              {store.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" required />
       <button type="submit" className="rounded bg-black px-4 py-2 text-white">업로드</button>
     </form>

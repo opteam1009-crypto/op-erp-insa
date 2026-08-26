@@ -24,11 +24,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '허용되지 않는 파일 형식입니다' }, { status: 400 })
   }
 
+  const franchiseStoreId = formData.get('franchise_store_id')
+
   const parsed = documentMetaSchema.safeParse({
     doc_type: formData.get('doc_type'),
     year: Number(formData.get('year')),
     month: Number(formData.get('month')),
     vendor_name: formData.get('vendor_name') || undefined,
+    transaction_type: formData.get('transaction_type'),
+    amount: Number(formData.get('amount')),
+    franchise_store_id: franchiseStoreId ? String(franchiseStoreId) : null,
   })
 
   if (!parsed.success) {
