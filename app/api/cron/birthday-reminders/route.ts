@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { format, startOfWeek } from 'date-fns'
 import { getThisWeekBirthdays, buildBirthdayMessage } from '@/lib/notifications/birthday-reminders'
-import { sendSlackNotification } from '@/lib/slack/notify'
+import { dispatchNotification } from '@/lib/notifications/dispatch'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   if (logError) return NextResponse.json({ sent: 0, skipped: 'already_sent_this_week' })
 
   const message = buildBirthdayMessage(birthdayEmployees.map((e) => e.name))
-  const ok = await sendSlackNotification({ webhookUrl: process.env.SLACK_WEBHOOK_URL!, text: message })
+  const ok = await dispatchNotification(message)
 
   return NextResponse.json({ sent: ok ? 1 : 0, week: weekKey })
 }

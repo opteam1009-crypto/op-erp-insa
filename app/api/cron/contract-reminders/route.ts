@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { differenceInCalendarDays, format } from 'date-fns'
 import { shouldRemind, buildReminderMessage, type ReminderKind } from '@/lib/notifications/contract-reminders'
-import { sendSlackNotification } from '@/lib/slack/notify'
+import { dispatchNotification } from '@/lib/notifications/dispatch'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 
       const daysLeft = differenceInCalendarDays(new Date(check.date), new Date(today))
       const message = buildReminderMessage(emp.name, check.kind, daysLeft)
-      const ok = await sendSlackNotification({ webhookUrl: process.env.SLACK_WEBHOOK_URL!, text: message })
+      const ok = await dispatchNotification(message)
       if (ok) sent += 1
     }
   }

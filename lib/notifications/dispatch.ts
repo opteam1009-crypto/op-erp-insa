@@ -36,5 +36,8 @@ export async function dispatchToSenders(senders: NotificationSender[], text: str
 
 /** Convenience wrapper used by cron routes: builds senders from process.env and dispatches. */
 export async function dispatchNotification(text: string): Promise<boolean> {
-  return dispatchToSenders(getConfiguredSenders(process.env), text)
+  const env: NotificationEnv = {
+    SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL,
+  }
+  return dispatchToSenders(getConfiguredSenders(env), text)
 }
