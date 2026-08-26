@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ALLOWED_UPLOAD_MIME_TYPES, MAX_FILE_SIZE_BYTES } from './upload'
 
 export const documentMetaSchema = z.object({
   doc_type: z.enum(['세금계산서', '계산서', '신용카드', '현금영수증', '기타']),
@@ -9,11 +10,7 @@ export const documentMetaSchema = z.object({
 
 export type DocumentMeta = z.infer<typeof documentMetaSchema>
 
-export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
-export const ALLOWED_MIME_TYPES = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-excel',
-]
+// Re-exported from lib/validation/upload.ts so existing importers keep working while
+// the payroll upload route shares the exact same limits.
+export { MAX_FILE_SIZE_BYTES }
+export const ALLOWED_MIME_TYPES = ALLOWED_UPLOAD_MIME_TYPES
