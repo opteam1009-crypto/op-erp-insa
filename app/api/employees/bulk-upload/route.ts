@@ -2,18 +2,17 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { parseEmployeeExcel } from '@/lib/excel/employee-parser'
 import { employeeSchema } from '@/lib/validation/employee'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
-import type { Role } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
-  const supabase = await createServerSupabase()
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth.user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', auth.user.id).single()
-  if (!profile || !permissions.canManageEmployees(profile.role as Role)) {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  if (!permissions.canManageEmployees(user.role)) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   }
+
+  const supabase = await createServerSupabase()
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
@@ -60,7 +59,7 @@ export async function POST(request: NextRequest) {
       birth_date: parsed.data.birth_date || null,
       contract_review_date: parsed.data.contract_review_date || null,
       contract_announce_date: parsed.data.contract_announce_date || null,
-      created_by: auth.user.id,
+      created_by: user.userId,
     })
     if (error) {
       rowErrors.push({ row: index + 2, message: error.message })

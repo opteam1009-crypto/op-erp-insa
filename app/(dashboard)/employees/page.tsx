@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
-import type { Role } from '@/lib/types'
 
 export default async function EmployeesPage() {
+  const user = await requireUser()
+  const canManage = permissions.canManageEmployees(user.role)
+
   const supabase = await createServerSupabase()
-  const { data: auth } = await supabase.auth.getUser()
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', auth.user!.id).single()
-  const canManage = profile ? permissions.canManageEmployees(profile.role as Role) : false
 
   const { data: employees } = await supabase
     .from('employees')

@@ -1,18 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { documentMetaSchema, MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES } from '@/lib/validation/document'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
-import type { Role } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
-  const supabase = await createServerSupabase()
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth.user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', auth.user.id).single()
-  if (!profile || !permissions.canUploadDocuments(profile.role as Role)) {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  if (!permissions.canUploadDocuments(user.role)) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   }
+
+  const supabase = await createServerSupabase()
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
@@ -50,7 +49,7 @@ export async function POST(request: NextRequest) {
     file_path: filePath,
     file_name: file.name,
     file_size: file.size,
-    uploaded_by: auth.user?.id,
+    uploaded_by: user.userId,
   })
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })

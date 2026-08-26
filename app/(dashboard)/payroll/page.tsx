@@ -1,18 +1,17 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
-import type { Role } from '@/lib/types'
 
 export default async function PayrollPage() {
-  const supabase = await createServerSupabase()
-  const { data: auth } = await supabase.auth.getUser()
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', auth.user!.id).single()
+  const user = await requireUser()
 
-  if (!profile || !permissions.canViewPayroll(profile.role as Role)) {
+  if (!permissions.canViewPayroll(user.role)) {
     redirect('/employees')
   }
 
+  const supabase = await createServerSupabase()
   const { data: employees } = await supabase.from('employees').select('id, employee_number, name').order('employee_number')
 
   return (

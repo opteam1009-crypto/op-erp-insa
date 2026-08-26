@@ -1,23 +1,30 @@
-import { redirect } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { requireUser } from '@/lib/auth/current-user'
+import { permissions } from '@/lib/auth/permissions'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await requireUser()
 
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, name, email')
-    .eq('id', user.id)
-    .single()
+  const navItems: { href: string; label: string }[] = [
+    { href: '/employees', label: '사원 관리' },
+    ...(permissions.canViewPayroll(user.role) ? [{ href: '/payroll', label: '급여대장' }] : []),
+    { href: '/documents', label: '증빙 관리' },
+  ]
 
   return (
     <div>
       <header className="flex items-center justify-between border-b p-4">
-        <span className="font-semibold">회사 ERP</span>
-        <span className="text-sm text-gray-500">{profile?.email} ({profile?.role})</span>
+        <div className="flex items-center gap-6">
+          <span className="font-semibold">회사 ERP</span>
+          <nav className="flex items-center gap-4 text-sm">
+            {navItems.map((item) => (
+              <Link key={item.href} href={item.href} className="text-gray-700 hover:underline">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <span className="text-sm text-gray-500">{user.email} ({user.role})</span>
       </header>
       <main className="p-6">{children}</main>
     </div>

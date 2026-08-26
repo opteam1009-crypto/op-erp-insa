@@ -1,18 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { parsePayrollExcel } from '@/lib/excel/payroll-parser'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
-import type { Role } from '@/lib/types'
+import { ALLOWED_UPLOAD_MIME_TYPES, MAX_FILE_SIZE_BYTES } from '@/lib/validation/upload'
 
 export async function POST(request: NextRequest) {
-  const supabase = await createServerSupabase()
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth.user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', auth.user.id).single()
-  if (!profile || !permissions.canViewPayroll(profile.role as Role)) {
+  const user = await getCurrentUser()
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  if (!permissions.canViewPayroll(user.role)) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   }
+
+  const supabase = await createServerSupabase()
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
@@ -21,6 +21,14 @@ export async function POST(request: NextRequest) {
 
   if (!file || !employeeId || !period) {
     return NextResponse.json({ error: 'file, employee_id, period are required' }, { status: 400 })
+  }
+
+  // Same limits the 증빙 upload route enforces — checked before any parsing/Storage work.
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return NextResponse.json({ error: '파일이 20MB를 초과합니다' }, { status: 400 })
+  }
+  if (!ALLOWED_UPLOAD_MIME_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: '허용되지 않는 파일 형식입니다' }, { status: 400 })
   }
 
   const buffer = await file.arrayBuffer()
@@ -43,7 +51,7 @@ export async function POST(request: NextRequest) {
     file_name: file.name,
     parsed_data: data,
     parse_status: status,
-    uploaded_by: auth.user.id,
+    uploaded_by: user.userId,
   }, { onConflict: 'employee_id,period' })
 
   if (insertError) {
