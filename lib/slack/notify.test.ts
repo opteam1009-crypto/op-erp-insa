@@ -25,4 +25,12 @@ describe('sendSlackNotification', () => {
     const result = await sendSlackNotification({ webhookUrl: 'https://hooks.slack.com/x', text: '안녕' })
     expect(result).toBe(false)
   })
+
+  it('returns false instead of throwing when the fetch itself fails at the network level', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')))
+
+    await expect(
+      sendSlackNotification({ webhookUrl: 'https://hooks.slack.com/x', text: '안녕' })
+    ).resolves.toBe(false)
+  })
 })
