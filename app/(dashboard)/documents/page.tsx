@@ -1,8 +1,14 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth/current-user'
+import { permissions } from '@/lib/auth/permissions'
 import { DeleteButton } from './DeleteButton'
 
 export default async function DocumentsPage() {
+  const user = await requireUser()
+  const canUpload = permissions.canUploadDocuments(user.role)
+  const canDelete = permissions.canDeleteDocuments(user.role)
+
   const supabase = await createServerSupabase()
   const { data: documents } = await supabase
     .from('documents')
@@ -16,8 +22,12 @@ export default async function DocumentsPage() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">증빙 관리</h1>
         <div className="flex gap-3">
-          <Link href="/documents/upload" className="rounded bg-black px-4 py-2 text-white">+ 증빙 업로드</Link>
-          <Link href="/documents/trash" className="rounded border px-4 py-2">휴지통</Link>
+          {canUpload && (
+            <Link href="/documents/upload" className="rounded bg-black px-4 py-2 text-white">+ 증빙 업로드</Link>
+          )}
+          {canDelete && (
+            <Link href="/documents/trash" className="rounded border px-4 py-2">휴지통</Link>
+          )}
         </div>
       </div>
       <table className="w-full border-collapse text-sm">
@@ -38,7 +48,7 @@ export default async function DocumentsPage() {
               <td className="p-2">{doc.vendor_name ?? '-'}</td>
               <td className="p-2">{doc.file_name}</td>
               <td className="p-2">
-                <DeleteButton id={doc.id} />
+                {canDelete && <DeleteButton id={doc.id} />}
               </td>
             </tr>
           ))}
