@@ -2,11 +2,23 @@ import { describe, it, expect } from 'vitest'
 import * as XLSX from 'xlsx'
 import { parseEmployeeExcel } from './employee-parser'
 
-function bufferFromRows(rows: Record<string, string>[]): ArrayBuffer {
-  const sheet = XLSX.utils.json_to_sheet(rows)
+function bufferFromSheet(sheet: XLSX.WorkSheet): ArrayBuffer {
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, sheet, 'Sheet1')
   return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
+}
+
+function bufferFromRows(rows: Record<string, string>[]): ArrayBuffer {
+  return bufferFromSheet(XLSX.utils.json_to_sheet(rows))
+}
+
+/**
+ * json_to_sheet coerces everything to text, so it can't produce a real Excel date cell.
+ * aoa_to_sheet keeps a Date object as a genuine date-formatted cell — which is what an
+ * actual HR spreadsheet contains, and what used to come back as a raw serial number.
+ */
+function bufferFromAoa(rows: (string | Date)[][]): ArrayBuffer {
+  return bufferFromSheet(XLSX.utils.aoa_to_sheet(rows))
 }
 
 describe('parseEmployeeExcel', () => {
@@ -29,6 +41,20 @@ describe('parseEmployeeExcel', () => {
         emergency_contact: '',
       },
     ])
+  })
+
+  it('formats real Excel date cells as yyyy-MM-dd instead of leaking serial numbers', () => {
+    const buffer = bufferFromAoa([
+      ['사번', '이름', '부서', '직급', '근로형태', '입사일', '생년월일'],
+      ['E003', '김철수', '개발팀', '팀장', '정규직', new Date(2024, 0, 15), new Date(1990, 11, 3)],
+    ])
+
+    const result = parseEmployeeExcel(buffer)
+
+    expect(result.errors).toHaveLength(0)
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0].hire_date).toBe('2024-01-15')
+    expect(result.rows[0].birth_date).toBe('1990-12-03')
   })
 
   it('reports a row missing a required header', () => {

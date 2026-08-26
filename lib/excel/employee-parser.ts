@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { format } from 'date-fns'
 
 export interface EmployeeRow {
   employee_number: string
@@ -19,10 +20,22 @@ export interface EmployeeParseResult {
 
 const REQUIRED_HEADERS = ['사번', '이름', '부서', '근로형태', '입사일'] as const
 
+/**
+ * A real Excel date cell is stored as a serial number (e.g. 45306.000601851854), which
+ * would never match employeeSchema's YYYY-MM-DD regex. XLSX.read(..., { cellDates: true })
+ * turns those cells into JS Date objects at local midnight, which we format back to
+ * yyyy-MM-dd here. Cells that were plain text are passed through unchanged.
+ */
+function cellToString(value: unknown): string {
+  if (value instanceof Date) return format(value, 'yyyy-MM-dd')
+  if (value === null || value === undefined) return ''
+  return String(value)
+}
+
 export function parseEmployeeExcel(buffer: ArrayBuffer): EmployeeParseResult {
-  const workbook = XLSX.read(buffer, { type: 'array' })
+  const workbook = XLSX.read(buffer, { type: 'array', cellDates: true })
   const sheet = workbook.Sheets[workbook.SheetNames[0]]
-  const json = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: '' })
+  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' })
 
   const errors: EmployeeParseResult['errors'] = []
   const rows: EmployeeRow[] = []
@@ -34,15 +47,15 @@ export function parseEmployeeExcel(buffer: ArrayBuffer): EmployeeParseResult {
       return
     }
     rows.push({
-      employee_number: String(raw['사번']),
-      name: String(raw['이름']),
-      department: String(raw['부서']),
-      position: String(raw['직급'] ?? ''),
-      employment_type: String(raw['근로형태']),
-      hire_date: String(raw['입사일']),
-      birth_date: String(raw['생년월일'] ?? ''),
-      phone: String(raw['연락처'] ?? ''),
-      emergency_contact: String(raw['비상연락망'] ?? ''),
+      employee_number: cellToString(raw['사번']),
+      name: cellToString(raw['이름']),
+      department: cellToString(raw['부서']),
+      position: cellToString(raw['직급']),
+      employment_type: cellToString(raw['근로형태']),
+      hire_date: cellToString(raw['입사일']),
+      birth_date: cellToString(raw['생년월일']),
+      phone: cellToString(raw['연락처']),
+      emergency_contact: cellToString(raw['비상연락망']),
     })
   })
 
