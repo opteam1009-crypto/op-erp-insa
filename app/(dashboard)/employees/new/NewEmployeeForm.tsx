@@ -4,7 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createEmployee } from '../actions'
 
-export function NewEmployeeForm() {
+export interface DepartmentOption {
+  id: string
+  name: string
+}
+
+export function NewEmployeeForm({ departments }: { departments: DepartmentOption[] }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
@@ -37,6 +42,14 @@ export function NewEmployeeForm() {
       {error && <p className="text-red-600">{error}</p>}
       <input name="employee_number" placeholder="사번" className="w-full border p-2" required />
       <input name="name" placeholder="이름" className="w-full border p-2" required />
+      <select name="department_id" className="w-full border p-2" defaultValue="">
+        <option value="">부서 미지정</option>
+        {departments.map((dept) => (
+          <option key={dept.id} value={dept.id}>
+            {dept.name}
+          </option>
+        ))}
+      </select>
       <input name="position" placeholder="직급" className="w-full border p-2" />
       <select name="employment_type" className="w-full border p-2" required>
         <option value="정규직">정규직</option>
