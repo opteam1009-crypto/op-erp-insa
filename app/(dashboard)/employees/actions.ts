@@ -43,6 +43,12 @@ export async function createEmployee(input: EmployeeInput) {
 }
 
 export async function updateEmployee(id: string, input: EmployeeInput) {
+  const user = await getCurrentUser()
+  if (!user) return { error: '로그인이 필요합니다' }
+  if (!permissions.canManageEmployees(user.role)) {
+    return { error: '권한이 없습니다' }
+  }
+
   const parsed = employeeSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues.map((i) => i.message).join(', ') }
@@ -58,6 +64,8 @@ export async function updateEmployee(id: string, input: EmployeeInput) {
       birth_date: parsed.data.birth_date || null,
       contract_review_date: parsed.data.contract_review_date || null,
       contract_announce_date: parsed.data.contract_announce_date || null,
+      salary_review_date: parsed.data.salary_review_date || null,
+      salary_announce_date: parsed.data.salary_announce_date || null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

@@ -15,6 +15,8 @@ export interface Employee {
   emergency_contact: string | null
   contract_review_date: string | null
   contract_announce_date: string | null
+  salary_review_date: string | null
+  salary_announce_date: string | null
 }
 
 export interface DocumentRecord {
