@@ -14,6 +14,8 @@ describe('employeeSchema', () => {
     emergency_contact: '010-9999-0000',
     contract_review_date: '',
     contract_announce_date: '',
+    salary_review_date: '',
+    salary_announce_date: '',
   }
 
   it('accepts a fully valid employee', () => {
@@ -32,6 +34,11 @@ describe('employeeSchema', () => {
 
   it('rejects a malformed hire_date', () => {
     const result = employeeSchema.safeParse({ ...valid, hire_date: '2024/01/15' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a malformed salary_review_date', () => {
+    const result = employeeSchema.safeParse({ ...valid, salary_review_date: '2024/06/01' })
     expect(result.success).toBe(false)
   })
 })

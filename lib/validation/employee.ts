@@ -18,6 +18,8 @@ export const employeeSchema = z.object({
   emergency_contact: z.string().optional(),
   contract_review_date: dateOrEmpty,
   contract_announce_date: dateOrEmpty,
+  salary_review_date: dateOrEmpty,
+  salary_announce_date: dateOrEmpty,
 })
 
 export type EmployeeInput = z.infer<typeof employeeSchema>

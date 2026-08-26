@@ -4,6 +4,7 @@ import { parseEmployeeExcel } from '@/lib/excel/employee-parser'
 import { employeeSchema } from '@/lib/validation/employee'
 import { getCurrentUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
+import { calculateContractReviewDate } from '@/lib/scheduling/contract-dates'
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser()
@@ -44,7 +45,6 @@ export async function POST(request: NextRequest) {
       birth_date: row.birth_date,
       phone: row.phone,
       emergency_contact: row.emergency_contact,
-      contract_review_date: '',
       contract_announce_date: '',
     })
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       ...parsed.data,
       department_id: parsed.data.department_id || null,
       birth_date: parsed.data.birth_date || null,
-      contract_review_date: parsed.data.contract_review_date || null,
+      contract_review_date: calculateContractReviewDate(parsed.data.hire_date),
       contract_announce_date: parsed.data.contract_announce_date || null,
       created_by: user.userId,
     })

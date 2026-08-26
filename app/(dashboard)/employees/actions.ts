@@ -5,6 +5,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { employeeSchema, type EmployeeInput } from '@/lib/validation/employee'
 import { getCurrentUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
+import { calculateContractReviewDate } from '@/lib/scheduling/contract-dates'
 
 export async function createEmployee(input: EmployeeInput) {
   // A server action is a directly-callable endpoint, so it needs the same
@@ -26,8 +27,12 @@ export async function createEmployee(input: EmployeeInput) {
     ...parsed.data,
     department_id: parsed.data.department_id || null,
     birth_date: parsed.data.birth_date || null,
-    contract_review_date: parsed.data.contract_review_date || null,
+    // Always computed at creation time — never taken from client input, even
+    // though the create form no longer sends this field at all (defense in depth).
+    contract_review_date: calculateContractReviewDate(parsed.data.hire_date),
     contract_announce_date: parsed.data.contract_announce_date || null,
+    salary_review_date: parsed.data.salary_review_date || null,
+    salary_announce_date: parsed.data.salary_announce_date || null,
     created_by: user.userId,
   })
 

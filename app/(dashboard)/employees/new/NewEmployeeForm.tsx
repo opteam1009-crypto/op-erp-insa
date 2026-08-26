@@ -24,8 +24,9 @@ export function NewEmployeeForm({ departments }: { departments: DepartmentOption
       birth_date: String(formData.get('birth_date') ?? ''),
       phone: String(formData.get('phone') ?? ''),
       emergency_contact: String(formData.get('emergency_contact') ?? ''),
-      contract_review_date: String(formData.get('contract_review_date') ?? ''),
       contract_announce_date: String(formData.get('contract_announce_date') ?? ''),
+      salary_review_date: String(formData.get('salary_review_date') ?? ''),
+      salary_announce_date: String(formData.get('salary_announce_date') ?? ''),
     }
 
     const result = await createEmployee(input)
@@ -61,8 +62,10 @@ export function NewEmployeeForm({ departments }: { departments: DepartmentOption
       <label className="block text-sm">생년월일<input type="date" name="birth_date" className="w-full border p-2" /></label>
       <input name="phone" placeholder="연락처" className="w-full border p-2" />
       <input name="emergency_contact" placeholder="비상연락망" className="w-full border p-2" />
-      <label className="block text-sm">정규직전환 평가일<input type="date" name="contract_review_date" className="w-full border p-2" /></label>
+      <p className="text-sm text-gray-500">정규직전환 평가일은 입사일 기준 3개월 후로 자동 계산됩니다 (등록 후 필요시 수정 가능).</p>
       <label className="block text-sm">정규직전환 발표일<input type="date" name="contract_announce_date" className="w-full border p-2" /></label>
+      <label className="block text-sm">연봉협상 평가일<input type="date" name="salary_review_date" className="w-full border p-2" /></label>
+      <label className="block text-sm">연봉협상 발표일<input type="date" name="salary_announce_date" className="w-full border p-2" /></label>
       <button type="submit" className="rounded bg-black px-4 py-2 text-white">저장</button>
     </form>
   )
