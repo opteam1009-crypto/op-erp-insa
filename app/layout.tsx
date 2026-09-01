@@ -12,7 +12,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// preload: false — 한글 서브셋은 unicode-range 청크가 수백 개라 전부 preload하면
+// preload: false — Noto Sans KR은 한글이 subsets 옵션으로 켜고 끄는 대상이 아니라
+// 기본으로 포함되는 핵심 글리프 세트다 (subsets: ["latin"]만 넣어도 한글이 포함된다).
+// 그 한글 글리프가 unicode-range 청크 수백 개로 쪼개져 나오므로, 전부 preload하면
 // 초기 로드가 수 MB로 불어난다. 브라우저가 실제로 필요한 청크만 받게 둔다.
 const notoSansKr = Noto_Sans_KR({
   variable: "--font-noto-kr",
