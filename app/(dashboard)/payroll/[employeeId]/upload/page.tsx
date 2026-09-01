@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Field, Input, FileInput } from '@/components/ui/Field'
 import { Badge } from '@/components/ui/Badge'
+import { Alert } from '@/components/ui/Alert'
 import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 import { buttonClass } from '@/lib/ui/button-class'
 
@@ -18,11 +19,18 @@ export default async function PayrollUploadPage({ params }: { params: Promise<{ 
   }
 
   const supabase = await createServerSupabase()
-  const { data: records } = await supabase
+  const { data: records, error: recordsError } = await supabase
     .from('payroll_records')
     .select('*')
     .eq('employee_id', employeeId)
     .order('period', { ascending: false })
+
+  // 조회 실패를 빈 목록으로 흘려보내면 "업로드된 급여대장이 없습니다"라는 빈
+  // 상태가 떠서, 없는 것과 못 불러온 것을 구분할 수 없게 된다. 업로드 자체는
+  // 이력 조회와 무관하므로 폼까지 가리지는 않는다.
+  if (recordsError) {
+    console.error('Failed to load payroll records:', recordsError)
+  }
 
   return (
     <div className="max-w-3xl">
@@ -57,6 +65,10 @@ export default async function PayrollUploadPage({ params }: { params: Promise<{ 
             </form>
           </CardBody>
         </Card>
+
+        {recordsError && (
+          <Alert variant="error">업로드 이력을 불러오지 못했습니다. 관리자에게 문의하세요.</Alert>
+        )}
 
         <Table>
           <THead>

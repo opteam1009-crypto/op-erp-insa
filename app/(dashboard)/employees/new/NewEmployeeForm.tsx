@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createEmployee } from '../actions'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Field, Input, Select } from '@/components/ui/Field'
 import { Alert } from '@/components/ui/Alert'
@@ -14,7 +13,21 @@ export interface DepartmentOption {
   name: string
 }
 
-export function NewEmployeeForm({ departments }: { departments: DepartmentOption[] }) {
+/**
+ * 제목은 이 폼이 그리지 않는다 — 컨테이너가 정한다. 전용 페이지에서는
+ * PageHeader가, 모달에서는 모달 제목이 그 역할을 한다. 폼은 필드와 제출만
+ * 책임진다.
+ *
+ * onDone은 저장 성공 후 무엇을 할지 컨테이너가 결정하게 한다. 기본값은
+ * 사원 목록으로 이동하는 기존 동작이고, 모달은 자신을 닫고 목록을 갱신한다.
+ */
+export function NewEmployeeForm({
+  departments,
+  onDone,
+}: {
+  departments: DepartmentOption[]
+  onDone?: () => void
+}) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
@@ -39,13 +52,13 @@ export function NewEmployeeForm({ departments }: { departments: DepartmentOption
       setError(result.error)
       return
     }
-    router.push('/employees')
+    setError(null)
+    if (onDone) onDone()
+    else router.push('/employees')
   }
 
   return (
     <form action={handleSubmit} className="max-w-3xl">
-      <PageHeader title="사원 등록" />
-
       <div className="flex flex-col gap-4">
         {error && <Alert variant="error">{error}</Alert>}
 
