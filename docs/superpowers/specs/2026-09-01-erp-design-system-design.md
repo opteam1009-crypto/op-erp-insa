@@ -93,7 +93,7 @@ props로 내린다. 클라이언트는 권한을 알 필요가 없고 `usePathna
 
 ### 로그아웃
 
-`app/(dashboard)/actions.ts`에 서버 액션 `signOut()`을 추가한다.
+`lib/auth/actions.ts`에 서버 액션 `signOut()`을 추가한다.
 `createServerSupabase()`로 `auth.signOut()`을 호출하고 `redirect('/login')`한다.
 사이드바 하단에서 `<form action={signOut}>`으로 제출한다.
 
@@ -141,16 +141,32 @@ Tailwind v4에서 다크 변형이 필요한 예외 상황을 위해 `@custom-va
 `var(--font-geist-sans), var(--font-noto-kr), sans-serif`로 구성한다. 브라우저가
 글리프 단위로 폴백하므로 숫자·영문은 Geist, 한글은 Noto Sans KR이 적용된다.
 
-스케일 4단 고정:
+`subsets`는 `["latin"]`이고 `preload: false`다. 이 Next.js 버전의
+`Noto_Sans_KR`은 `"korean"` 서브셋 이름을 받지 않지만(허용값:
+`cyrillic | latin | latin-ext | vietnamese`), 한글은 `subsets` 배열과 무관하게
+기본 커버리지로 실린다 — 빌드 산출물에서 `@font-face` 125개, 한글 음절
+영역(U+AC00–D7A3)을 덮는 `unicode-range` 959개를 확인했다. 그 청크를 전부
+preload하면 초기 로드가 수 MB로 불어나므로 `preload: false`로 둔다.
 
-| 역할 | 크기 / 굵기 | 색 |
+스케일 6단 고정. 이 여섯 개 밖의 크기를 쓰지 않는다:
+
+| 단 | 크기 / 굵기 | 용도 |
 |---|---|---|
-| 페이지 제목 | 20px / 600 | `--fg` |
-| 섹션 제목 | 15px / 600 | `--fg` |
-| 본문 · 표 | 13.5px / 400 | `--fg` |
-| 라벨 · 캡션 | 12px / 500 | `--fg-muted` |
+| display | 22px / 600 | `StatCard`의 수치. 유일한 사용처 |
+| title | 20px / 600 | 페이지 제목 |
+| section | 15px / 600 | 카드 제목, 모바일 상단 바, 사이드바 워드마크 |
+| body | 13.5px / 400 | 본문, 표 셀, 입력 컨트롤, `md` 버튼 |
+| caption | 12px / 500 | 라벨, 힌트, 배지, 보조 텍스트, `sm`·`icon` 버튼 |
+| eyebrow | 11px / 500 | 사이드바 그룹 라벨. 유일한 사용처 |
+
+위계는 크기를 늘리는 대신 굵기와 색(`--fg` / `--fg-muted` / `--fg-subtle`)으로 만든다.
 
 금액·사번 등 숫자 컬럼에는 `font-variant-numeric: tabular-nums`를 적용한다.
+
+> **정정 (구현 후):** 최초 스펙은 4단을 선언했으나 스펙이 요구한 화면들과 맞지
+> 않았다. `StatCard`의 수치와 사이드바 그룹 라벨은 어느 단에도 속하지 못했고,
+> 그 결과 구현 계획이 11가지 크기(11 / 12 / 12.5 / 13 / 13.5 / 14 / 15 / 16 /
+> 18 / 20 / 22px)를 쓰게 됐다. 위 6단은 그 11개를 정리한 결과다.
 
 ## 공용 컴포넌트
 
@@ -158,30 +174,46 @@ Tailwind v4에서 다크 변형이 필요한 예외 상황을 위해 `@custom-va
 
 | 컴포넌트 | 내용 |
 |---|---|
-| `Button` | `primary` / `secondary` / `ghost` / `danger` × `sm` / `md`. `Link`에도 쓸 수 있도록 `buttonClass(variant, size)` 헬퍼를 함께 export |
+| `Button` | `primary` / `secondary` / `ghost` / `danger` × `sm` / `md` / `icon`. `Link`에도 쓸 수 있도록 `buttonClass(variant, size, extra)` 헬퍼를 함께 export |
 | `PageHeader` | 제목 + 설명 + 우측 액션 슬롯 |
-| `Card` | `Card` / `CardHeader` / `CardTitle` / `CardBody`. `--surface` 배경, 1px 보더, `rounded-lg` |
-| `Table` | `Table` / `THead` / `TBody` / `TR` / `TH` / `TD`. 헤더는 `--surface-2`, 행 hover, `align="right"` 시 우측 정렬 + `tabular-nums` |
+| `Card` | `Card` / `CardHeader` / `CardTitle` / `CardBody`. `--surface` 배경, 1px 보더, `rounded-lg`. `CardBody`의 세로 패딩은 `padding="default" \| "tight" \| "snug"` prop으로 고른다 |
+| `Table` | `Table` / `THead` / `TBody` / `TR` / `TH` / `TD` / `TableEmpty`. 헤더는 `--surface-2`, 본문 행만 hover, `align="right"` 시 우측 정렬 + `tabular-nums` |
 | `Badge` | `tone` prop 또는 `status` 문자열 자동 매핑 |
-| `Field` | 라벨 + 컨트롤 + 에러 문구 래퍼 |
-| `Input` / `Select` / `Textarea` | 통일된 보더·패딩·포커스 링 |
-| `FileInput` | 점선 보더 영역 + 선택된 파일명 표시 |
+| `Field` | 라벨 + 컨트롤 + 힌트 / 에러 문구 래퍼 |
+| `Input` / `Select` | 통일된 보더·패딩·포커스 링 |
+| `FileInput` | 점선 보더 영역, `type="file"` 내장 |
 | `Alert` | `error` / `success` / `info`. `role="alert"` 포함 |
 | `EmptyState` | 아이콘 + 문구 + 선택적 액션 |
 | `DescriptionList` | 라벨/값 2열 정의형 목록 |
 | `StatCard` | 라벨 + 큰 숫자 + 보조 문구, 숫자 tabular |
 
 `buttonClass()`와 배지 톤 매핑은 JSX가 아닌 순수 함수로 분리해 테스트 대상으로
-삼는다 (`components/ui/badge-tone.ts`).
+삼는다 (`lib/ui/button-class.ts`, `lib/ui/badge-tone.ts`). 두 파일이
+`components/ui/`가 아니라 `lib/` 아래 있는 이유는 `vitest.config.ts`의
+`include`가 `lib/**/*.test.ts`이기 때문이다.
+
+> **정정 (구현 후):** 두 가지가 스펙과 달라졌다.
+>
+> 1. `Textarea`는 만들지 않았다. 15개 페이지 어디에도 `<textarea>`가 없다.
+> 2. `CardBody`는 처음에 `px-4 py-4 ${className}`으로 구현됐고 호출부가
+>    `className="py-1"`로 덮으려 했으나, `class` 속성의 단어 순서는 CSS
+>    캐스케이드를 결정하지 않으므로 6곳 모두에서 `py-4`가 이겼다. 명시적
+>    `padding` prop으로 교체했다. 일반 규칙: 유틸리티 클래스로 프리미티브의
+>    내장 스타일을 덮으려 하지 말고 그 프리미티브에 prop을 추가한다.
 
 ### 배지 톤 매핑
 
 | 값 | 톤 |
 |---|---|
-| 재직, 활성, 매출 | positive |
+| 재직, 운영중, 매출, 미수금 | positive |
 | 휴직 | warning |
-| 퇴사, 비활성, 미지급금 | negative |
+| 퇴사, 폐업, 미지급금 | negative |
+| 매입 | accent |
 | 그 외 (미분류 등) | neutral |
+
+> **정정 (구현 후):** 최초 스펙은 가맹점 상태를 '활성 / 비활성'으로 적었으나
+> `lib/types.ts`의 실제 값은 `'운영중' | '폐업'`이다. 또한 매출과 매입이 같은
+> 톤이면 표에서 구분되지 않아 매입을 accent로 분리했다.
 
 ## 페이지별 적용
 
@@ -212,7 +244,7 @@ app/layout.tsx
 app/globals.css
 app/login/page.tsx, app/login/LoginForm.tsx
 app/(dashboard)/layout.tsx
-app/(dashboard)/actions.ts                      (신규 — signOut)
+lib/auth/actions.ts                             (신규 — signOut)
 app/(dashboard)/employees/page.tsx
 app/(dashboard)/employees/new/page.tsx, NewEmployeeForm.tsx
 app/(dashboard)/employees/[id]/page.tsx
@@ -244,7 +276,7 @@ app/(dashboard)/documents/trash/page.tsx, TrashList.tsx
   로직을 건드리지 않으므로 회귀가 발생하면 실수의 신호로 간주한다.
 - 신규: `lib/nav/items.test.ts` — 역할별 메뉴 필터링. admin과 staff는 5개 전부,
   viewer는 급여대장·손익 정산이 제외되는지 검증.
-- 신규: `components/ui/badge-tone.test.ts` — 상태 문자열 → 톤 매핑, 미지의 값은
+- 신규: `lib/ui/badge-tone.test.ts` — 상태 문자열 → 톤 매핑, 미지의 값은
   neutral로 폴백.
 - `npm run lint`, `npm run build` 통과.
 - `npm run dev` 실행 후 라이트/다크 × 데스크톱/모바일 4개 조합 육안 확인.
