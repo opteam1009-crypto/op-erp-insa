@@ -61,8 +61,11 @@ export function Modal({
       onClick={(event) => {
         if (event.target === dialogRef.current) onClose()
       }}
+      // m-auto가 핵심이다. <dialog>는 UA 스타일시트의 `inset: 0; margin: auto`
+      // 조합으로 중앙에 놓이는데, Tailwind preflight가 모든 요소의 margin을 0으로
+      // 리셋해 버려서 그대로 두면 좌상단에 붙는다.
       className={
-        'w-[min(calc(100vw-2rem),640px)] rounded-xl border border-border bg-surface p-0 text-fg ' +
+        'm-auto w-[min(calc(100vw-2rem),640px)] rounded-xl border border-border bg-surface p-0 text-fg ' +
         'backdrop:bg-black/40 open:flex open:flex-col max-h-[min(calc(100vh-4rem),44rem)]'
       }
     >
