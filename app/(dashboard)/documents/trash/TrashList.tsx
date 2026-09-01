@@ -43,8 +43,10 @@ export function TrashList() {
           {documents.length ? (
             documents.map((doc) => (
               <TR key={doc.id}>
-                <TD className="max-w-[260px] truncate">
-                  <span title={doc.file_name}>{doc.file_name}</span>
+                <TD>
+                  <span title={doc.file_name} className="block max-w-[260px] truncate">
+                    {doc.file_name}
+                  </span>
                 </TD>
                 <TD>{doc.doc_type}</TD>
                 <TD className="tnum whitespace-nowrap">{doc.deleted_at}</TD>

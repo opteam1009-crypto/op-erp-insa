@@ -103,7 +103,12 @@ export function AppShell({
 
   return (
     <div className="min-h-full">
-      <MobileTopBar nav={nav} onOpen={() => setOpen(true)} menuButtonRef={menuButtonRef} />
+      <MobileTopBar
+        nav={nav}
+        onOpen={() => setOpen(true)}
+        menuButtonRef={menuButtonRef}
+        inert={open}
+      />
 
       {open && (
         <div
@@ -117,9 +122,12 @@ export function AppShell({
 
       {/* 드로어가 열려 있는 동안 배경 콘텐츠를 포커스/접근성 트리에서 제거한다.
           별도의 포커스 트랩이 필요 없는 이유: inert가 Tab 이동과 스크린리더
-          탐색을 모두 막아 주기 때문이다. 데스크톱(md 이상)에서는 위의
-          isDesktop 보정 덕분에 open이 항상 false로 유지되므로 여기 관여하지
-          않는다. */}
+          탐색을 모두 막아 주기 때문이다 — 단, main뿐 아니라 그 형제인
+          MobileTopBar에도 걸어야 한다. MobileTopBar는 main의 형제이므로
+          main만 inert면 백드롭 아래 깔린 메뉴 열기 버튼이 여전히 Tab으로
+          닿는다 (위 MobileTopBar 호출부의 inert={open} 참고). 데스크톱(md
+          이상)에서는 위의 isDesktop 보정 덕분에 open이 항상 false로 유지되므로
+          여기 관여하지 않는다. */}
       <main inert={open} className="md:pl-[260px]">
         <div className="mx-auto w-full max-w-[1400px] px-4 py-5 md:px-8 md:py-7">{children}</div>
       </main>

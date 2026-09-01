@@ -1,9 +1,13 @@
 import type { InputHTMLAttributes, SelectHTMLAttributes } from 'react'
 
+// py-2(16px) + border(2px) + leading-[18px] = 36px, matching buttonClass's md
+// height (h-9). Without an explicit leading, this inherits body's line-height
+// 1.55 and lands at ~39px, 3px taller than the buttons it sits next to in
+// inline filter bars (profit-loss, franchise-stores create form).
 const CONTROL =
-  'w-full rounded-md border border-border-strong bg-surface px-2.5 py-2 text-[13.5px] text-fg ' +
+  'w-full rounded-md border border-border-strong bg-surface px-2.5 py-2 text-[13.5px] leading-[18px] text-fg ' +
   'placeholder:text-fg-subtle transition-colors ' +
-  'focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 ' +
+  'focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ' +
   'disabled:opacity-50'
 
 export function Field({
@@ -54,7 +58,7 @@ export function FileInput({ className, ...props }: InputHTMLAttributes<HTMLInput
         'w-full rounded-md border border-dashed border-border-strong bg-surface-2 px-2.5 py-2 text-[13.5px] text-fg-muted ' +
         'file:mr-3 file:rounded file:border-0 file:bg-surface-3 file:px-2.5 file:py-1 ' +
         'file:text-[12px] file:font-medium file:text-fg ' +
-        'focus:outline-none focus:ring-2 focus:ring-accent/25 ' +
+        'focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ' +
         (className ?? '')
       }
     />

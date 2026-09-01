@@ -78,8 +78,10 @@ export default async function DocumentsPage() {
                   {doc.amount != null ? `${doc.amount.toLocaleString('ko-KR')}원` : '-'}
                 </TD>
                 <TD>{(doc.franchise_stores as unknown as { name: string } | null)?.name ?? '-'}</TD>
-                <TD className="max-w-[220px] truncate">
-                  <span title={doc.file_name}>{doc.file_name}</span>
+                <TD>
+                  <span title={doc.file_name} className="block max-w-[220px] truncate">
+                    {doc.file_name}
+                  </span>
                 </TD>
                 {canDelete && (
                   <TD align="right">

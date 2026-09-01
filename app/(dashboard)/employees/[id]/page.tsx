@@ -26,7 +26,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <>
             <Badge status={employee.status}>{employee.status}</Badge>
             {permissions.canManageEmployees(user.role) && (
-              <Link href={`/employees/${id}/edit`} className={buttonClass('secondary', 'sm')}>
+              <Link href={`/employees/${id}/edit`} className={buttonClass('secondary')}>
                 수정
               </Link>
             )}

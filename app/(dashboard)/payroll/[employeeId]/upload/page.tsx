@@ -71,7 +71,11 @@ export default async function PayrollUploadPage({ params }: { params: Promise<{ 
               records.map((r) => (
                 <TR key={r.id}>
                   <TD className="tnum">{r.period}</TD>
-                  <TD className="max-w-[320px] truncate">{r.file_name}</TD>
+                  <TD>
+                    <span title={r.file_name} className="block max-w-[320px] truncate">
+                      {r.file_name}
+                    </span>
+                  </TD>
                   <TD align="right">
                     <Badge tone={r.parse_status === 'parsed' ? 'positive' : 'neutral'}>
                       {r.parse_status === 'parsed' ? '파싱됨' : '원본 보관'}

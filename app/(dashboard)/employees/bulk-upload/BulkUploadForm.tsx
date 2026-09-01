@@ -24,7 +24,7 @@ export function BulkUploadForm() {
         title="사원 엑셀 일괄 등록"
         description="현재 사원 목록을 내려받아 같은 양식으로 채운 뒤 업로드하세요."
         actions={
-          <a href="/api/employees/export" className={buttonClass('secondary', 'sm')}>
+          <a href="/api/employees/export" className={buttonClass('secondary')}>
             현재 사원 목록 다운로드
           </a>
         }

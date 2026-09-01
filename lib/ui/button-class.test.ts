@@ -38,9 +38,16 @@ describe('buttonClass', () => {
     expect(buttonClass('primary', 'md')).toBe(buttonClass('primary', 'md').trim())
   })
 
-  it('always includes a visible focus ring', () => {
+  it('always includes a full-opacity, offset focus ring (3:1 against the page background)', () => {
     for (const v of ['primary', 'secondary', 'ghost', 'danger'] as const) {
-      expect(buttonClass(v)).toContain('focus-visible:ring-2')
+      const cls = buttonClass(v)
+      expect(cls).toContain('focus-visible:ring-2')
+      // Full-opacity accent, not a faded ring/40 or ring/25 that falls below 3:1.
+      expect(cls).toContain('focus-visible:ring-accent')
+      expect(cls).not.toMatch(/focus-visible:ring-accent\/\d+/)
+      // Offset so the ring is visually separated from the control it outlines.
+      expect(cls).toContain('focus-visible:ring-offset-2')
+      expect(cls).toContain('focus-visible:ring-offset-bg')
     }
   })
 })

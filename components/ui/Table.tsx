@@ -12,9 +12,13 @@ export function THead({ children }: { children: React.ReactNode }) {
   return <thead className="bg-surface-2">{children}</thead>
 }
 
-/** hover는 tbody 행에만 걸린다 — 헤더 행까지 반응하면 클릭 가능해 보인다. */
+/**
+ * hover는 tbody 행에만 걸린다 — 헤더 행까지 반응하면 클릭 가능해 보인다.
+ * `TableEmpty`가 렌더링하는 빈 상태 행은 `data-empty-row`로 표시해 제외한다 —
+ * 클릭 가능한 요소가 아닌데 hover 시 배경이 tint되면 오해를 준다.
+ */
 export function TBody({ children }: { children: React.ReactNode }) {
-  return <tbody className="[&_tr:hover]:bg-surface-3/50">{children}</tbody>
+  return <tbody className="[&_tr:not([data-empty-row]):hover]:bg-surface-3/50">{children}</tbody>
 }
 
 export function TR({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -72,7 +76,7 @@ export function TableEmpty({
   description?: string
 }) {
   return (
-    <tr>
+    <tr data-empty-row>
       <td colSpan={colSpan}>
         <EmptyState title={title} description={description} />
       </td>

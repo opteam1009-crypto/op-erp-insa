@@ -21,7 +21,11 @@ export function StatusToggleButton({ id, status }: { id: string; status: '운영
 
   return (
     <div className="flex items-center justify-end gap-2">
-      {error && <span className="text-[12px] text-negative">{error}</span>}
+      {error && (
+        <span role="alert" className="text-[12px] text-negative">
+          {error}
+        </span>
+      )}
       <Button type="button" variant="secondary" size="sm" onClick={handleClick}>
         {status === '운영중' ? '폐업 처리' : '운영 재개'}
       </Button>

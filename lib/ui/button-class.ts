@@ -3,7 +3,7 @@ export type ButtonSize = 'sm' | 'md' | 'icon'
 
 const BASE =
   'inline-flex items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors ' +
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ' +
   'disabled:pointer-events-none disabled:opacity-50'
 
 const VARIANTS: Record<ButtonVariant, string> = {
