@@ -39,7 +39,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <CardHeader>
             <CardTitle>근로 정보</CardTitle>
           </CardHeader>
-          <CardBody className="py-1">
+          <CardBody padding="tight">
             <DescriptionList
               items={[
                 { label: '직급', value: employee.position ?? '-' },
@@ -55,7 +55,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <CardHeader>
             <CardTitle>연락처</CardTitle>
           </CardHeader>
-          <CardBody className="py-1">
+          <CardBody padding="tight">
             <DescriptionList
               items={[
                 { label: '연락처', value: employee.phone ?? '-' },
@@ -69,7 +69,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <CardHeader>
             <CardTitle>일정</CardTitle>
           </CardHeader>
-          <CardBody className="py-1">
+          <CardBody padding="tight">
             <DescriptionList
               items={[
                 { label: '정규직전환 평가일', value: employee.contract_review_date ?? '-' },

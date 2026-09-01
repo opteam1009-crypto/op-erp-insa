@@ -56,7 +56,7 @@ export function BulkUploadForm() {
               <CardHeader>
                 <CardTitle>실패한 행 {result.errors.length}건</CardTitle>
               </CardHeader>
-              <CardBody className="py-2">
+              <CardBody padding="tight">
                 <ul className="flex flex-col divide-y divide-border">
                   {result.errors.map((e, i) => (
                     <li key={i} className="flex gap-3 py-2 text-[13.5px]">
