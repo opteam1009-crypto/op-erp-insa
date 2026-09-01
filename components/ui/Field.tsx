@@ -51,9 +51,9 @@ export function FileInput({ className, ...props }: InputHTMLAttributes<HTMLInput
       {...props}
       type="file"
       className={
-        'w-full rounded-md border border-dashed border-border-strong bg-surface-2 px-2.5 py-2 text-[13px] text-fg-muted ' +
+        'w-full rounded-md border border-dashed border-border-strong bg-surface-2 px-2.5 py-2 text-[13.5px] text-fg-muted ' +
         'file:mr-3 file:rounded file:border-0 file:bg-surface-3 file:px-2.5 file:py-1 ' +
-        'file:text-[12.5px] file:font-medium file:text-fg ' +
+        'file:text-[12px] file:font-medium file:text-fg ' +
         'focus:outline-none focus:ring-2 focus:ring-accent/25 ' +
         (className ?? '')
       }

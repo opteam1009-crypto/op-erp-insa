@@ -18,7 +18,7 @@ export function Alert({
   return (
     <div
       role="alert"
-      className={`rounded-md border px-3 py-2 text-[13px] ${VARIANT_CLASS[variant]} ${className ?? ''}`}
+      className={`rounded-md border px-3 py-2 text-[13.5px] ${VARIANT_CLASS[variant]} ${className ?? ''}`}
     >
       {children}
     </div>

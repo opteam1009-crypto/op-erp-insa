@@ -11,7 +11,7 @@ export function PageHeader({
     <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="text-[20px] font-semibold tracking-tight text-fg">{title}</h1>
-        {description && <p className="mt-1 text-[13px] text-fg-muted">{description}</p>}
+        {description && <p className="mt-1 text-[13.5px] text-fg-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>

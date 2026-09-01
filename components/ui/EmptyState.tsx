@@ -17,8 +17,8 @@ export function EmptyState({
           <path d="M4 7h16M4 12h16M4 17h9" strokeLinecap="round" />
         </svg>
       </div>
-      <p className="text-[14px] font-medium text-fg">{title}</p>
-      {description && <p className="max-w-sm text-[13px] text-fg-muted">{description}</p>}
+      <p className="text-[13.5px] font-medium text-fg">{title}</p>
+      {description && <p className="max-w-sm text-[12px] text-fg-muted">{description}</p>}
       {action && <div className="mt-2">{action}</div>}
     </div>
   )
