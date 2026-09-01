@@ -2,6 +2,10 @@ import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { requireUser } from '@/lib/auth/current-user'
 import { permissions } from '@/lib/auth/permissions'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Badge } from '@/components/ui/Badge'
+import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
+import { buttonClass } from '@/lib/ui/button-class'
 
 export default async function EmployeesPage() {
   const user = await requireUser()
@@ -16,45 +20,58 @@ export default async function EmployeesPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">사원 관리</h1>
-        {canManage && (
-          <div className="flex gap-2">
-            <Link href="/employees/bulk-upload" className="rounded border px-4 py-2">
-              엑셀 일괄 등록
-            </Link>
-            <Link href="/employees/new" className="rounded bg-black px-4 py-2 text-white">
-              + 사원 등록
-            </Link>
-          </div>
-        )}
-      </div>
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b text-left">
-            <th className="p-2">사번</th>
-            <th className="p-2">이름</th>
-            <th className="p-2">부서</th>
-            <th className="p-2">근로형태</th>
-            <th className="p-2">재직상태</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees?.map((emp) => (
-            <tr key={emp.id} className="border-b">
-              <td className="p-2">
-                <Link href={`/employees/${emp.id}`} className="text-blue-600">
-                  {emp.employee_number}
-                </Link>
-              </td>
-              <td className="p-2">{emp.name}</td>
-              <td className="p-2">{(emp.departments as unknown as { name: string } | null)?.name ?? '-'}</td>
-              <td className="p-2">{emp.employment_type}</td>
-              <td className="p-2">{emp.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <PageHeader
+        title="사원 관리"
+        description={`총 ${employees?.length ?? 0}명`}
+        actions={
+          canManage && (
+            <>
+              <Link href="/employees/bulk-upload" className={buttonClass('secondary')}>
+                엑셀 일괄 등록
+              </Link>
+              <Link href="/employees/new" className={buttonClass('primary')}>
+                + 사원 등록
+              </Link>
+            </>
+          )
+        }
+      />
+      <Table>
+        <THead>
+          <TR>
+            <TH>사번</TH>
+            <TH>이름</TH>
+            <TH>부서</TH>
+            <TH>근로형태</TH>
+            <TH>재직상태</TH>
+          </TR>
+        </THead>
+        <TBody>
+          {employees?.length ? (
+            employees.map((emp) => (
+              <TR key={emp.id}>
+                <TD className="tnum">
+                  <Link href={`/employees/${emp.id}`} className="font-medium text-accent hover:underline">
+                    {emp.employee_number}
+                  </Link>
+                </TD>
+                <TD>{emp.name}</TD>
+                <TD>{(emp.departments as unknown as { name: string } | null)?.name ?? '-'}</TD>
+                <TD>{emp.employment_type}</TD>
+                <TD>
+                  <Badge status={emp.status}>{emp.status}</Badge>
+                </TD>
+              </TR>
+            ))
+          ) : (
+            <TableEmpty
+              colSpan={5}
+              title="등록된 사원이 없습니다"
+              description={canManage ? '사원 등록 또는 엑셀 일괄 등록으로 시작하세요.' : undefined}
+            />
+          )}
+        </TBody>
+      </Table>
     </div>
   )
 }
