@@ -25,7 +25,18 @@
   - `DocumentRecord.doc_type`: `'세금계산서' | '계산서' | '신용카드' | '현금영수증' | '기타'`
   - `DocumentRecord.transaction_type`: `'매출' | '매입' | null`
   - `Role`: `'admin' | 'staff' | 'viewer'`
-- **타이포 스케일 4단 고정:** 페이지 제목 `text-[20px] font-semibold` / 섹션 제목 `text-[15px] font-semibold` / 본문·표 `text-[13.5px]` / 라벨·캡션 `text-[12px] font-medium text-fg-subtle`.
+- **타이포 스케일 6단 고정.** 이 여섯 개 밖의 크기를 쓰지 않는다. 각 단은 용도가 정해져 있다:
+
+  | 단 | 크기 | 용도 |
+  |---|---|---|
+  | display | `text-[22px] font-semibold` | `StatCard`의 수치. 유일한 사용처다. |
+  | title | `text-[20px] font-semibold` | 페이지 제목 (`PageHeader`, 로그인 화면 제목) |
+  | section | `text-[15px] font-semibold` | 카드 제목, 모바일 상단 바 제목, 사이드바 워드마크 |
+  | body | `text-[13.5px]` | 본문, 표 셀, 입력 컨트롤, `md` 버튼 |
+  | caption | `text-[12px]` | 라벨, 힌트, 배지, 보조 텍스트, `sm`·`icon` 버튼 |
+  | eyebrow | `text-[11px]` | 사이드바 그룹 라벨. 유일한 사용처다. |
+
+  위계는 크기를 늘리는 대신 `font-weight`와 색(`text-fg` / `text-fg-muted` / `text-fg-subtle`)으로 만든다.
 - **`AGENTS.md` 자동 재생성:** `next dev` 실행 시 `AGENTS.md`가 다시 쓰일 수 있다. diff에 뜨면 되돌리지 말고 작업과 함께 커밋한다.
 - **브랜치:** `design/sidebar-shell-and-design-system`. 모든 커밋은 이 브랜치에.
 
@@ -638,9 +649,9 @@ const VARIANTS: Record<ButtonVariant, string> = {
 }
 
 const SIZES: Record<ButtonSize, string> = {
-  sm: 'h-8 px-2.5 text-[12.5px]',
+  sm: 'h-8 px-2.5 text-[12px]',
   md: 'h-9 px-3.5 text-[13.5px]',
-  icon: 'h-8 w-8 p-0 text-[13px]',
+  icon: 'h-8 w-8 p-0 text-[13.5px]',
 }
 
 /**
@@ -777,7 +788,7 @@ export function Alert({
   return (
     <div
       role="alert"
-      className={`rounded-md border px-3 py-2 text-[13px] ${VARIANT_CLASS[variant]} ${className ?? ''}`}
+      className={`rounded-md border px-3 py-2 text-[13.5px] ${VARIANT_CLASS[variant]} ${className ?? ''}`}
     >
       {children}
     </div>
@@ -829,7 +840,7 @@ export function PageHeader({
     <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="text-[20px] font-semibold tracking-tight text-fg">{title}</h1>
-        {description && <p className="mt-1 text-[13px] text-fg-muted">{description}</p>}
+        {description && <p className="mt-1 text-[13.5px] text-fg-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -859,8 +870,8 @@ export function EmptyState({
           <path d="M4 7h16M4 12h16M4 17h9" strokeLinecap="round" />
         </svg>
       </div>
-      <p className="text-[14px] font-medium text-fg">{title}</p>
-      {description && <p className="max-w-sm text-[13px] text-fg-muted">{description}</p>}
+      <p className="text-[13.5px] font-medium text-fg">{title}</p>
+      {description && <p className="max-w-sm text-[12px] text-fg-muted">{description}</p>}
       {action && <div className="mt-2">{action}</div>}
     </div>
   )
@@ -1046,9 +1057,9 @@ export function FileInput({ className, ...props }: InputHTMLAttributes<HTMLInput
       {...props}
       type="file"
       className={
-        'w-full rounded-md border border-dashed border-border-strong bg-surface-2 px-2.5 py-2 text-[13px] text-fg-muted ' +
+        'w-full rounded-md border border-dashed border-border-strong bg-surface-2 px-2.5 py-2 text-[13.5px] text-fg-muted ' +
         'file:mr-3 file:rounded file:border-0 file:bg-surface-3 file:px-2.5 file:py-1 ' +
-        'file:text-[12.5px] file:font-medium file:text-fg ' +
+        'file:text-[12px] file:font-medium file:text-fg ' +
         'focus:outline-none focus:ring-2 focus:ring-accent/25 ' +
         (className ?? '')
       }
@@ -1384,7 +1395,7 @@ export function Sidebar({
           >
             E
           </span>
-          <span className="text-[14px] font-semibold text-fg">회사 ERP</span>
+          <span className="text-[15px] font-semibold text-fg">회사 ERP</span>
         </Link>
         <button
           type="button"
@@ -1442,7 +1453,7 @@ export function Sidebar({
           >
             {user.email.charAt(0).toUpperCase()}
           </span>
-          <span className="min-w-0 flex-1 truncate text-[12.5px] text-fg-muted" title={user.email}>
+          <span className="min-w-0 flex-1 truncate text-[12px] text-fg-muted" title={user.email}>
             {user.email}
           </span>
         </div>
@@ -1636,13 +1647,13 @@ export default function LoginPage() {
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <span
             aria-hidden
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-[16px] font-bold text-accent-fg"
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-[15px] font-bold text-accent-fg"
           >
             E
           </span>
           <div>
-            <h1 className="text-[18px] font-semibold text-fg">회사 ERP</h1>
-            <p className="mt-1 text-[13px] text-fg-muted">
+            <h1 className="text-[20px] font-semibold text-fg">회사 ERP</h1>
+            <p className="mt-1 text-[13.5px] text-fg-muted">
               사원정보 · 증빙 · 급여대장을 관리합니다
             </p>
           </div>
@@ -2344,7 +2355,7 @@ export function BulkUploadForm() {
               <CardBody className="py-2">
                 <ul className="flex flex-col divide-y divide-border">
                   {result.errors.map((e, i) => (
-                    <li key={i} className="flex gap-3 py-2 text-[13px]">
+                    <li key={i} className="flex gap-3 py-2 text-[13.5px]">
                       <span className="shrink-0 font-medium tnum text-fg-subtle">{e.row}행</span>
                       <span className="text-negative">{e.message}</span>
                     </li>
@@ -3382,6 +3393,7 @@ DB에서 자기 계정의 `profiles.role`을 `viewer`로 바꾸고 `/employees`�
 1. "배지 톤 매핑" 표의 `활성` → `운영중`, `비활성` → `폐업`으로 수정하고 `매입 → accent` 행을 추가한다.
 2. "공용 컴포넌트" 절과 "테스트" 절의 `components/ui/badge-tone.ts` / `components/ui/badge-tone.test.ts` 경로를 `lib/ui/badge-tone.ts` / `lib/ui/badge-tone.test.ts`로 수정하고, `lib/ui/button-class.ts`를 추가한다.
 3. "로그아웃" 절의 `app/(dashboard)/actions.ts`를 `lib/auth/actions.ts`로 수정한다.
+4. "타이포그래피" 절의 4단 스케일 표를 이 계획의 Global Constraints에 있는 6단 표(display / title / section / body / caption / eyebrow)로 교체한다. 4단 선언은 스펙 자신이 요구한 화면들과 맞지 않았다 — `StatCard`의 수치와 사이드바 그룹 라벨은 어느 단에도 속하지 않았다.
 
 - [ ] **Step 7: 최종 커밋**
 
