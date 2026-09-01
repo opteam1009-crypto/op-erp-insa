@@ -16,6 +16,7 @@
 - **도메인 로직 불변.** Supabase 쿼리, 서버 액션 시그니처, `lib/auth/permissions.ts`, `lib/validation/*`, `lib/reports/*` 등을 변경하지 않는다. 유일한 예외는 신규 `lib/auth/actions.ts`(로그아웃)이다.
 - **오류 메시지 문구 불변.** 표현만 `Alert`로 교체하고 텍스트는 그대로 둔다.
 - **다크 모드는 토큰으로만.** 컴포넌트 코드에 `dark:` 접두사를 쓰지 않는다.
+- **유틸리티 클래스로 프리미티브의 내장 스타일을 덮으려 하지 않는다.** Tailwind에서 `class` 속성의 단어 순서는 우선순위를 만들지 않는다 — 컴파일된 CSS에서 나중에 정의된 규칙이 이긴다. `<CardBody className="py-1">`처럼 쓰면 `px-4 py-4 py-1`이 되고 `py-4`가 그대로 적용된다. 프리미티브가 이미 지정한 속성을 바꿔야 하면 그 프리미티브에 명시적 prop을 추가한다 (`CardBody`의 `padding="default" | "tight" | "snug"`이 그 예다). `className`은 프리미티브가 건드리지 않는 속성(grid 배치, `max-w-*` 등)에만 쓴다.
 - **테스트 파일 위치.** `vitest.config.ts`의 `include`는 `['lib/**/*.test.ts']`이다. 새 단위 테스트는 반드시 `lib/` 아래에 둔다. `vitest.config.ts`는 수정하지 않는다.
 - **`environment: 'node'`.** JSX 렌더링 테스트는 불가능하다. 테스트 대상은 순수 함수뿐이다.
 - **실제 enum 값** (`lib/types.ts` 기준, 임의로 바꾸지 말 것):
@@ -819,8 +820,33 @@ export function CardTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="text-[15px] font-semibold text-fg">{children}</h2>
 }
 
-export function CardBody({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-4 py-4 ${className ?? ''}`}>{children}</div>
+/**
+ * 세로 패딩은 `padding` prop으로만 고른다. `className`으로 `py-*`를 넘기면
+ * 안 된다 — 클래스 문자열의 순서는 캐스케이드를 결정하지 않고, 컴파일된
+ * CSS에서 나중에 정의된 규칙이 이기므로 기본값 `py-4`가 그대로 남는다.
+ * `className`은 패딩과 충돌하지 않는 것(grid 배치 등)에만 쓴다.
+ */
+const CARD_BODY_PADDING = {
+  /** 일반 카드 본문. */
+  default: 'px-4 py-4',
+  /** 행마다 자체 패딩이 있는 내용(DescriptionList, divide-y 목록)을 담을 때. */
+  tight: 'px-4 py-1',
+  /** 한 줄짜리 필터·액션 바. */
+  snug: 'px-4 py-3',
+} as const
+
+export type CardBodyPadding = keyof typeof CARD_BODY_PADDING
+
+export function CardBody({
+  children,
+  padding = 'default',
+  className,
+}: {
+  children: React.ReactNode
+  padding?: CardBodyPadding
+  className?: string
+}) {
+  return <div className={`${CARD_BODY_PADDING[padding]} ${className ?? ''}`}>{children}</div>
 }
 ```
 
@@ -1893,7 +1919,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <CardHeader>
             <CardTitle>근로 정보</CardTitle>
           </CardHeader>
-          <CardBody className="py-1">
+          <CardBody padding="tight">
             <DescriptionList
               items={[
                 { label: '직급', value: employee.position ?? '-' },
@@ -1909,7 +1935,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <CardHeader>
             <CardTitle>연락처</CardTitle>
           </CardHeader>
-          <CardBody className="py-1">
+          <CardBody padding="tight">
             <DescriptionList
               items={[
                 { label: '연락처', value: employee.phone ?? '-' },
@@ -1923,7 +1949,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <CardHeader>
             <CardTitle>일정</CardTitle>
           </CardHeader>
-          <CardBody className="py-1">
+          <CardBody padding="tight">
             <DescriptionList
               items={[
                 { label: '정규직전환 평가일', value: employee.contract_review_date ?? '-' },
@@ -2352,7 +2378,7 @@ export function BulkUploadForm() {
               <CardHeader>
                 <CardTitle>실패한 행 {result.errors.length}건</CardTitle>
               </CardHeader>
-              <CardBody className="py-2">
+              <CardBody padding="tight">
                 <ul className="flex flex-col divide-y divide-border">
                   {result.errors.map((e, i) => (
                     <li key={i} className="flex gap-3 py-2 text-[13.5px]">
@@ -2504,7 +2530,7 @@ export function CreateFranchiseStoreForm() {
 
   return (
     <Card className="mb-4">
-      <CardBody className="py-3.5">
+      <CardBody padding="snug">
         <form action={handleSubmit} className="flex flex-wrap items-end gap-3">
           <Field label="가맹점명" htmlFor="name" className="min-w-[220px] flex-1">
             <Input id="name" name="name" required />
@@ -3212,7 +3238,7 @@ export default async function ProfitLossPage({
 
       <div className="flex flex-col gap-4">
         <Card>
-          <CardBody className="py-3.5">
+          <CardBody padding="snug">
             <form className="flex flex-wrap items-end gap-3">
               <Field label="연도" htmlFor="year" className="w-28">
                 <Input id="year" type="number" name="year" defaultValue={year} />
