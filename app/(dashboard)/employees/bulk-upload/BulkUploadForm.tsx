@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Field, FileInput } from '@/components/ui/Field'
+import { Alert } from '@/components/ui/Alert'
+import { Button } from '@/components/ui/Button'
+import { buttonClass } from '@/lib/ui/button-class'
 
 export function BulkUploadForm() {
   const [result, setResult] = useState<{ inserted: number; errors: { row: number; message: string }[] } | null>(null)
@@ -13,20 +19,54 @@ export function BulkUploadForm() {
   }
 
   return (
-    <div className="max-w-lg space-y-4">
-      <h1 className="text-xl font-bold">사원 엑셀 일괄 등록</h1>
-      <a href="/api/employees/export" className="text-blue-600 underline">현재 사원 목록 다운로드</a>
-      <form onSubmit={handleUpload} className="space-y-2">
-        <input type="file" name="file" accept=".xlsx,.xls" required />
-        <button type="submit" className="rounded bg-black px-4 py-2 text-white">업로드</button>
-      </form>
+    <div className="max-w-2xl">
+      <PageHeader
+        title="사원 엑셀 일괄 등록"
+        description="현재 사원 목록을 내려받아 같은 양식으로 채운 뒤 업로드하세요."
+        actions={
+          <a href="/api/employees/export" className={buttonClass('secondary', 'sm')}>
+            현재 사원 목록 다운로드
+          </a>
+        }
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>파일 업로드</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <form onSubmit={handleUpload} className="flex flex-col gap-4">
+            <Field label="엑셀 파일" htmlFor="file" hint=".xlsx 또는 .xls">
+              <FileInput id="file" name="file" accept=".xlsx,.xls" required />
+            </Field>
+            <div className="flex justify-end">
+              <Button type="submit">업로드</Button>
+            </div>
+          </form>
+        </CardBody>
+      </Card>
+
       {result && (
-        <div>
-          <p>{result.inserted}건 등록 완료</p>
+        <div className="mt-4 flex flex-col gap-3">
+          <Alert variant={result.errors.length > 0 ? 'info' : 'success'}>
+            {result.inserted}건 등록 완료
+          </Alert>
           {result.errors.length > 0 && (
-            <ul className="text-red-600">
-              {result.errors.map((e, i) => <li key={i}>{e.row}행: {e.message}</li>)}
-            </ul>
+            <Card>
+              <CardHeader>
+                <CardTitle>실패한 행 {result.errors.length}건</CardTitle>
+              </CardHeader>
+              <CardBody className="py-2">
+                <ul className="flex flex-col divide-y divide-border">
+                  {result.errors.map((e, i) => (
+                    <li key={i} className="flex gap-3 py-2 text-[13.5px]">
+                      <span className="shrink-0 font-medium tnum text-fg-subtle">{e.row}행</span>
+                      <span className="text-negative">{e.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardBody>
+            </Card>
           )}
         </div>
       )}
