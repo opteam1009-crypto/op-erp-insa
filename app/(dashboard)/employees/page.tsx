@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 import { Alert } from '@/components/ui/Alert'
 import { buttonClass } from '@/lib/ui/button-class'
+import { NewEmployeeModalButton } from './NewEmployeeModalButton'
 
 export default async function EmployeesPage() {
   const user = await requireUser()
@@ -14,10 +15,17 @@ export default async function EmployeesPage() {
 
   const supabase = await createServerSupabase()
 
-  const { data: employees, error: employeesError } = await supabase
-    .from('employees')
-    .select('id, employee_number, name, employment_type, status, department_id, departments(name)')
-    .order('employee_number')
+  // 부서 목록은 등록 모달의 셀렉트 옵션이다. 관리 권한이 없으면 모달 버튼
+  // 자체가 렌더링되지 않으므로 조회하지 않는다.
+  const [{ data: employees, error: employeesError }, departmentsResult] = await Promise.all([
+    supabase
+      .from('employees')
+      .select('id, employee_number, name, employment_type, status, department_id, departments(name)')
+      .order('employee_number'),
+    canManage
+      ? supabase.from('departments').select('id, name').order('name')
+      : Promise.resolve({ data: [], error: null }),
+  ])
 
   // 조회 실패를 빈 목록으로 흘려보내면 "등록된 사원이 없습니다"라는 빈 상태가
   // 떠서, 데이터가 없는 것과 못 불러온 것을 구분할 수 없게 된다.
@@ -37,9 +45,7 @@ export default async function EmployeesPage() {
               <Link href="/employees/bulk-upload" className={buttonClass('secondary')}>
                 엑셀 일괄 등록
               </Link>
-              <Link href="/employees/new" className={buttonClass('primary')}>
-                + 사원 등록
-              </Link>
+              <NewEmployeeModalButton departments={departmentsResult.data ?? []} />
             </>
           )
         }

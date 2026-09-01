@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Field, Input, Select, FileInput } from '@/components/ui/Field'
 import { Alert } from '@/components/ui/Alert'
@@ -12,23 +11,43 @@ export interface FranchiseStoreOption {
   name: string
 }
 
-export function DocumentUploadForm({ franchiseStores }: { franchiseStores: FranchiseStoreOption[] }) {
+/**
+ * 제목은 이 폼이 그리지 않는다 — 컨테이너가 정한다. 전용 페이지에서는
+ * PageHeader가, 모달에서는 모달 제목이 그 역할을 한다.
+ *
+ * onDone은 업로드 성공 후 무엇을 할지 컨테이너가 결정하게 한다. 전용
+ * 페이지는 폼을 비우고 그대로 머물러 연속 업로드를 할 수 있게 하고,
+ * 모달은 자신을 닫고 증빙 목록을 갱신한다.
+ */
+export function DocumentUploadForm({
+  franchiseStores,
+  onDone,
+}: {
+  franchiseStores: FranchiseStoreOption[]
+  onDone?: () => void
+}) {
   const [message, setMessage] = useState<string | null>(null)
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+    // await 뒤에는 e.currentTarget이 이미 null이므로 지금 잡아 둔다.
+    const form = e.currentTarget
+    const formData = new FormData(form)
     const response = await fetch('/api/documents/upload', { method: 'POST', body: formData })
     const result = await response.json()
-    setMessage(result.error ?? '업로드 완료')
-    if (!result.error) e.currentTarget.reset()
+    if (result.error) {
+      setMessage(result.error)
+      return
+    }
+    form.reset()
+    if (onDone) onDone()
+    else setMessage('업로드 완료')
   }
 
   const now = new Date()
 
   return (
-    <div className="max-w-2xl">
-      <PageHeader title="증빙 업로드" />
+    <div>
       <form onSubmit={handleUpload} className="flex flex-col gap-4">
         {message && (
           <Alert variant={message === '업로드 완료' ? 'success' : 'error'}>{message}</Alert>
