@@ -19,16 +19,25 @@ export function Sidebar({
   user,
   open,
   onClose,
+  isDesktop,
 }: {
   nav: NavGroup[]
   user: ShellUser
   open: boolean
   onClose: () => void
+  /** md 이상 여부. 오프캔버스(모바일에서 닫힘) 판정에만 쓴다 — 데스크톱에서는
+   * 사이드바가 상시 노출된 페이지의 일부이므로 절대 inert가 되면 안 된다. */
+  isDesktop: boolean
 }) {
   const pathname = usePathname()
+  // md 미만이면서 닫혀 있을 때만 "화면 밖" 상태다. md 이상에서는 open 값과
+  // 무관하게 항상 false — "닫혀 있으면 inert"로 단순화하면 데스크톱에서
+  // 사이드바 전체가 못 쓰게 된다.
+  const offCanvas = !isDesktop && !open
 
   return (
     <aside
+      inert={offCanvas}
       className={[
         'fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-border bg-surface-2',
         'transition-transform duration-200 ease-out md:translate-x-0',

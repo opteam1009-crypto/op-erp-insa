@@ -1,12 +1,32 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { usePathname } from 'next/navigation'
 import type { NavGroup } from '@/lib/nav/items'
 import { Sidebar, type ShellUser } from './Sidebar'
 import { MobileTopBar } from './MobileTopBar'
 
 export type { ShellUser }
+
+// Tailwind's default `md` breakpoint (the same one every `md:` class in this
+// shell keys off). Keeping it here as the single JS-side source of truth so
+// `open` and `inert` can react to the *actual* viewport, not just the last
+// value the drawer's own open/close handlers set.
+const DESKTOP_QUERY = '(min-width: 768px)'
+
+function subscribeToViewport(callback: () => void) {
+  const mql = window.matchMedia(DESKTOP_QUERY)
+  mql.addEventListener('change', callback)
+  return () => mql.removeEventListener('change', callback)
+}
+
+function getIsDesktopSnapshot(): boolean {
+  return window.matchMedia(DESKTOP_QUERY).matches
+}
+
+function getIsDesktopServerSnapshot(): boolean {
+  return false
+}
 
 export function AppShell({
   nav,
@@ -20,6 +40,11 @@ export function AppShell({
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const isDesktop = useSyncExternalStore(
+    subscribeToViewport,
+    getIsDesktopSnapshot,
+    getIsDesktopServerSnapshot,
+  )
 
   // 라우트가 바뀌면 드로어를 닫는다. 안 그러면 메뉴를 누른 뒤에도 덮여 있다.
   // 렌더 중에 이전 pathname과 비교해 상태를 조정한다 (React가 권장하는
@@ -32,6 +57,19 @@ export function AppShell({
   if (pathname !== prevPathname) {
     setPrevPathname(pathname)
     setOpen(false)
+  }
+
+  // 뷰포트가 md 이상으로 바뀌면 드로어를 강제로 닫는다. 그 폭에서는
+  // 사이드바가 md:translate-x-0으로 항상 보이고 햄버거/백드롭은 md:hidden으로
+  // 사라지므로, open이 true로 남아 있으면 아래 <main inert>와 스크롤 잠금이
+  // 풀리지 않은 채 화면이 멈춘 것처럼 보인다 (Escape는 여전히 통하지만 마우스
+  // 사용자는 이유를 알 길이 없다). 같은 "prop이 바뀌면 상태를 조정" 패턴이라
+  // pathname 처리와 마찬가지로 렌더 중에 처리하며, 첫 렌더 포함 매 렌더마다
+  // isDesktop을 다시 계산하므로 별도의 마운트 시점 체크가 필요 없다.
+  const [prevIsDesktop, setPrevIsDesktop] = useState(isDesktop)
+  if (isDesktop !== prevIsDesktop) {
+    setPrevIsDesktop(isDesktop)
+    if (isDesktop) setOpen(false)
   }
 
   // 백드롭 클릭 / Escape / 사이드바의 닫기(X) 버튼처럼 "그냥 닫기만" 하는
@@ -75,12 +113,13 @@ export function AppShell({
         />
       )}
 
-      <Sidebar nav={nav} user={user} open={open} onClose={closeDrawer} />
+      <Sidebar nav={nav} user={user} open={open} onClose={closeDrawer} isDesktop={isDesktop} />
 
       {/* 드로어가 열려 있는 동안 배경 콘텐츠를 포커스/접근성 트리에서 제거한다.
           별도의 포커스 트랩이 필요 없는 이유: inert가 Tab 이동과 스크린리더
-          탐색을 모두 막아 주기 때문이다. 데스크톱(md 이상)에서는 드로어가
-          열리지 않으므로(open은 항상 false로 유지) 여기 관여하지 않는다. */}
+          탐색을 모두 막아 주기 때문이다. 데스크톱(md 이상)에서는 위의
+          isDesktop 보정 덕분에 open이 항상 false로 유지되므로 여기 관여하지
+          않는다. */}
       <main inert={open} className="md:pl-[260px]">
         <div className="mx-auto w-full max-w-[1400px] px-4 py-5 md:px-8 md:py-7">{children}</div>
       </main>
