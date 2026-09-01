@@ -662,7 +662,7 @@ export function buttonClass(
 npx vitest run lib/nav lib/ui
 ```
 
-기대: PASS (24개 테스트).
+기대: PASS (28개 테스트 — items 13, badge-tone 6, button-class 9).
 
 - [ ] **Step 9: 전체 스위트 회귀 확인**
 
@@ -670,7 +670,7 @@ npx vitest run lib/nav lib/ui
 npm run test
 ```
 
-기대: 기존 테스트 전부 PASS + 신규 24개 PASS.
+기대: 기존 테스트 전부 PASS + 신규 28개 PASS.
 
 - [ ] **Step 10: 커밋**
 
@@ -3318,13 +3318,13 @@ git commit -m "feat: restyle profit-loss with stat cards and wider layout"
 
 교체하지 못하고 남은 곳이 있는지 확인한다.
 
+`border-collapse`는 `components/ui/Table.tsx`에만 남아 있어야 정상이므로 `app` 아래만 검색한다.
+
 ```bash
-grep -rn "bg-black\|text-blue-600\|text-red-600\|text-gray-500\|border-collapse\|border-b p-4\|w-full border p-2" app components --include=*.tsx
+grep -rn "bg-black\|text-blue-600\|text-red-600\|text-gray-500\|border-collapse\|border-b p-4\|w-full border p-2" app --include=*.tsx
 ```
 
-기대: 결과 없음.
-
-`components/ui/Table.tsx`의 `border-collapse`는 정상이므로 이 검색에서 나오면 무시한다. 그 외 결과가 나오면 해당 파일을 프리미티브로 교체한다.
+기대: 결과 없음. 나오면 해당 파일을 프리미티브로 교체한다.
 
 - [ ] **Step 2: 다크 모드 미대응 색 검색**
 
@@ -3344,7 +3344,7 @@ npm run lint
 npm run build
 ```
 
-기대: 전부 통과. 기존 테스트 + Task 3의 신규 24개.
+기대: 전부 통과. 기존 테스트 + Task 3의 신규 28개.
 
 - [ ] **Step 4: 4조합 육안 점검**
 
