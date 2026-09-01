@@ -1,15 +1,19 @@
 'use client'
 
+import { Button } from '@/components/ui/Button'
+
 export function DeleteButton({ id }: { id: string }) {
   return (
-    <button
+    <Button
+      type="button"
+      variant="danger"
+      size="sm"
       onClick={async () => {
         await fetch(`/api/documents/${id}`, { method: 'DELETE' })
         window.location.reload()
       }}
-      className="text-red-600"
     >
       삭제
-    </button>
+    </Button>
   )
 }
