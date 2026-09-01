@@ -4,6 +4,9 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { CreateFranchiseStoreForm } from './CreateFranchiseStoreForm'
 import { StatusToggleButton } from './StatusToggleButton'
 import type { FranchiseStore } from '@/lib/types'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Badge } from '@/components/ui/Badge'
+import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 
 export default async function FranchiseStoresPage() {
   const user = await requireUser()
@@ -15,32 +18,44 @@ export default async function FranchiseStoresPage() {
     .select('*')
     .order('name')
 
+  const rows = stores as FranchiseStore[] | null
+
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-bold">가맹점 관리</h1>
+    <div className="max-w-3xl">
+      <PageHeader title="가맹점 관리" description={`총 ${rows?.length ?? 0}곳`} />
       {canManage && <CreateFranchiseStoreForm />}
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b text-left">
-            <th className="p-2">가맹점명</th>
-            <th className="p-2">상태</th>
-            {canManage && <th className="p-2">관리</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {(stores as FranchiseStore[] | null)?.map((store) => (
-            <tr key={store.id} className="border-b">
-              <td className="p-2">{store.name}</td>
-              <td className="p-2">{store.status}</td>
-              {canManage && (
-                <td className="p-2">
-                  <StatusToggleButton id={store.id} status={store.status} />
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table>
+        <THead>
+          <TR>
+            <TH>가맹점명</TH>
+            <TH>상태</TH>
+            {canManage && <TH align="right">관리</TH>}
+          </TR>
+        </THead>
+        <TBody>
+          {rows?.length ? (
+            rows.map((store) => (
+              <TR key={store.id}>
+                <TD>{store.name}</TD>
+                <TD>
+                  <Badge status={store.status}>{store.status}</Badge>
+                </TD>
+                {canManage && (
+                  <TD align="right">
+                    <StatusToggleButton id={store.id} status={store.status} />
+                  </TD>
+                )}
+              </TR>
+            ))
+          ) : (
+            <TableEmpty
+              colSpan={canManage ? 3 : 2}
+              title="등록된 가맹점이 없습니다"
+              description={canManage ? '위 입력창에서 가맹점을 추가하세요.' : undefined}
+            />
+          )}
+        </TBody>
+      </Table>
     </div>
   )
 }
