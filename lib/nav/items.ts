@@ -1,6 +1,3 @@
-import { permissions } from '@/lib/auth/permissions'
-import type { Role } from '@/lib/types'
-
 export type NavIconName = 'users' | 'wallet' | 'store' | 'chart' | 'file'
 
 export interface NavItem {
@@ -15,37 +12,28 @@ export interface NavGroup {
 }
 
 /**
- * 사이드바 메뉴를 역할에 따라 구성한다.
+ * 사이드바 메뉴.
  *
- * 서버 레이아웃에서 호출해 결과를 클라이언트 셸에 props로 내린다. 덕분에
- * 클라이언트 번들은 권한 규칙을 알 필요가 없고, 이 함수는 순수 함수로 남아
- * 단위 테스트가 가능하다.
+ * 예전에는 역할별로 걸러냈지만, 인증이 공용 비밀번호 하나가 되면서 구분할
+ * 대상이 사라졌다 — 로그인한 사람은 전부 같은 것을 본다.
  */
-export function buildNavItems(role: Role): NavGroup[] {
-  const groups: NavGroup[] = [
-    {
-      label: '인사',
-      items: [
-        { href: '/employees', label: '사원 관리', icon: 'users' },
-        ...(permissions.canViewPayroll(role)
-          ? [{ href: '/payroll', label: '급여대장', icon: 'wallet' as const }]
-          : []),
-      ],
-    },
-    {
-      label: '정산',
-      items: [
-        { href: '/franchise-stores', label: '가맹점 관리', icon: 'store' },
-        ...(permissions.canViewProfitLoss(role)
-          ? [{ href: '/profit-loss', label: '손익 정산', icon: 'chart' as const }]
-          : []),
-        { href: '/documents', label: '증빙 관리', icon: 'file' },
-      ],
-    },
-  ]
-
-  return groups.filter((group) => group.items.length > 0)
-}
+export const NAV_GROUPS: NavGroup[] = [
+  {
+    label: '인사',
+    items: [
+      { href: '/employees', label: '사원 관리', icon: 'users' },
+      { href: '/payroll', label: '급여대장', icon: 'wallet' },
+    ],
+  },
+  {
+    label: '정산',
+    items: [
+      { href: '/franchise-stores', label: '가맹점 관리', icon: 'store' },
+      { href: '/profit-loss', label: '손익 정산', icon: 'chart' },
+      { href: '/documents', label: '증빙 관리', icon: 'file' },
+    ],
+  },
+]
 
 /**
  * 현재 경로가 이 메뉴에 속하는지 판별한다.

@@ -1,24 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createBrowserSupabase } from '@/lib/supabase/client'
+import { useState } from 'react'
 import { isPurgeable } from '@/lib/documents/trash'
 import type { DocumentRecord } from '@/lib/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 import { Button } from '@/components/ui/Button'
 
-export function TrashList() {
-  const [documents, setDocuments] = useState<DocumentRecord[]>([])
-
-  useEffect(() => {
-    const supabase = createBrowserSupabase()
-    supabase
-      .from('documents')
-      .select('*')
-      .not('deleted_at', 'is', null)
-      .then(({ data }) => setDocuments((data ?? []) as DocumentRecord[]))
-  }, [])
+/**
+ * 목록은 서버 컴포넌트가 읽어 props로 내려준다 — Neon에는 브라우저에서 붙을
+ * 방법이 없다. 복원은 여전히 라우트 핸들러를 부르고, 결과를 기다리지 않고
+ * 화면에서 먼저 지운다.
+ */
+export function TrashList({ documents: initial }: { documents: DocumentRecord[] }) {
+  const [documents, setDocuments] = useState<DocumentRecord[]>(initial)
 
   async function restore(id: string) {
     await fetch(`/api/documents/${id}/restore`, { method: 'POST' })

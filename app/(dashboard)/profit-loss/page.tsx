@@ -1,7 +1,4 @@
-import { redirect } from 'next/navigation'
-import { requireUser } from '@/lib/auth/current-user'
-import { permissions } from '@/lib/auth/permissions'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { sql } from '@/lib/db/sql'
 import {
   calculatePeriodTotals,
   calculateFranchiseBalances,
@@ -23,36 +20,41 @@ export default async function ProfitLossPage({
 }: {
   searchParams: Promise<{ year?: string; month?: string }>
 }) {
-  const user = await requireUser()
-  if (!permissions.canViewProfitLoss(user.role)) {
-    redirect('/employees')
-  }
-
   const now = new Date()
   const { year: yearParam, month: monthParam } = await searchParams
   const year = Number(yearParam) || now.getFullYear()
   const month = Number(monthParam) || now.getMonth() + 1
 
-  const supabase = await createServerSupabase()
-  const [{ data: documents, error: documentsError }, { data: franchiseStores, error: storesError }] =
-    await Promise.all([
-      supabase
-        .from('documents')
-        .select('transaction_type, amount, year, month, franchise_store_id')
-        .is('deleted_at', null)
-        .not('transaction_type', 'is', null),
-      supabase.from('franchise_stores').select('id, name'),
+  let classified: ClassifiedDocument[]
+  let storeNameById: Map<string, string>
+
+  try {
+    const [documentRows, storeRows] = await Promise.all([
+      sql`
+        select transaction_type, amount, year, month, franchise_store_id
+        from documents
+        where deleted_at is null and transaction_type is not null
+      `,
+      sql`select id, name from franchise_stores`,
     ])
 
-  if (documentsError || storesError) {
-    console.error('Failed to load profit-loss data:', documentsError ?? storesError)
+    // numeric 컬럼은 드라이버가 문자열로 돌려준다. 계산 함수는 숫자를 기대하므로
+    // 여기서 바꾼다 — 안 바꾸면 합계가 문자열 이어붙이기가 된다.
+    classified = (documentRows as { amount: string | null }[]).map((row) => ({
+      ...row,
+      amount: row.amount == null ? null : Number(row.amount),
+    })) as ClassifiedDocument[]
+
+    storeNameById = new Map(
+      (storeRows as { id: string; name: string }[]).map((s) => [s.id, s.name])
+    )
+  } catch (error) {
+    console.error('Failed to load profit-loss data:', error)
     return <Alert variant="error">손익 데이터를 불러오지 못했습니다. 관리자에게 문의하세요.</Alert>
   }
 
-  const classified = (documents ?? []) as ClassifiedDocument[]
   const periodTotals = calculatePeriodTotals(classified, year, month)
   const franchiseBalances = calculateFranchiseBalances(classified)
-  const storeNameById = new Map((franchiseStores ?? []).map((s) => [s.id, s.name]))
 
   return (
     <div className="max-w-5xl">

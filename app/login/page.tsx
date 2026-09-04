@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { LoginForm } from './LoginForm'
 
 export default function LoginPage() {
@@ -19,14 +18,7 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-        {/* useSearchParams() needs a Suspense boundary so the rest of this prerendered
-            route can still be served as static HTML. */}
-        <Suspense fallback={null}>
-          <LoginForm />
-        </Suspense>
-        <p className="mt-6 text-center text-[12px] text-fg-subtle">
-          초대받은 계정만 로그인할 수 있습니다
-        </p>
+        <LoginForm />
       </div>
     </div>
   )

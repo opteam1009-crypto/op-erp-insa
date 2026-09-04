@@ -1,20 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerSupabase } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth/current-user'
-import { permissions } from '@/lib/auth/permissions'
+import { sql } from '@/lib/db/sql'
+import { isSignedIn } from '@/lib/auth/current-user'
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const user = await getCurrentUser()
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  if (!permissions.canDeleteDocuments(user.role)) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
-  }
+  if (!(await isSignedIn())) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const supabase = await createServerSupabase()
-  const { error } = await supabase.from('documents').update({ deleted_at: null }).eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    await sql`update documents set deleted_at = null where id = ${id}`
+  } catch (error) {
+    console.error('Failed to restore document:', error)
+    return NextResponse.json({ error: 'restore failed' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }

@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { usePathname } from 'next/navigation'
 import type { NavGroup } from '@/lib/nav/items'
-import { Sidebar, type ShellUser } from './Sidebar'
+import { Sidebar } from './Sidebar'
 import { MobileTopBar } from './MobileTopBar'
 
-export type { ShellUser }
 
 // Tailwind's default `md` breakpoint (the same one every `md:` class in this
 // shell keys off). Keeping it here as the single JS-side source of truth so
@@ -30,11 +29,9 @@ function getIsDesktopServerSnapshot(): boolean {
 
 export function AppShell({
   nav,
-  user,
   children,
 }: {
   nav: NavGroup[]
-  user: ShellUser
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
@@ -118,7 +115,7 @@ export function AppShell({
         />
       )}
 
-      <Sidebar nav={nav} user={user} open={open} onClose={closeDrawer} isDesktop={isDesktop} />
+      <Sidebar nav={nav} open={open} onClose={closeDrawer} isDesktop={isDesktop} />
 
       {/* 드로어가 열려 있는 동안 배경 콘텐츠를 포커스/접근성 트리에서 제거한다.
           별도의 포커스 트랩이 필요 없는 이유: inert가 Tab 이동과 스크린리더

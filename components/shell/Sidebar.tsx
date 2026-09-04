@@ -5,24 +5,16 @@ import { usePathname } from 'next/navigation'
 import { isNavItemActive, type NavGroup } from '@/lib/nav/items'
 import { signOut } from '@/lib/auth/actions'
 import { buttonClass } from '@/lib/ui/button-class'
-import { Badge } from '@/components/ui/Badge'
 import { Icon } from './icons'
 import { ThemeToggle } from './ThemeToggle'
 
-export interface ShellUser {
-  email: string
-  role: string
-}
-
 export function Sidebar({
   nav,
-  user,
   open,
   onClose,
   isDesktop,
 }: {
   nav: NavGroup[]
-  user: ShellUser
   open: boolean
   onClose: () => void
   /** md 이상 여부. 오프캔버스(모바일에서 닫힘) 판정에만 쓴다 — 데스크톱에서는
@@ -102,34 +94,20 @@ export function Sidebar({
         ))}
       </nav>
 
-      <div className="border-t border-border px-3 py-3">
-        <div className="mb-2 flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-[12px] font-semibold text-fg-muted"
+      {/* 이름도 역할도 표시하지 않는다 — 공용 비밀번호 하나라 표시할 신원이
+          없다. 테마 토글과 로그아웃만 남는다. */}
+      <div className="flex items-center justify-end gap-1 border-t border-border px-3 py-3">
+        <ThemeToggle />
+        <form action={signOut}>
+          <button
+            type="submit"
+            aria-label="로그아웃"
+            title="로그아웃"
+            className={buttonClass('ghost', 'icon')}
           >
-            {user.email.charAt(0).toUpperCase()}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-[12px] text-fg-muted" title={user.email}>
-            {user.email}
-          </span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <Badge tone="neutral">{user.role}</Badge>
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
-            <form action={signOut}>
-              <button
-                type="submit"
-                aria-label="로그아웃"
-                title="로그아웃"
-                className={buttonClass('ghost', 'icon')}
-              >
-                <Icon name="logout" />
-              </button>
-            </form>
-          </div>
-        </div>
+            <Icon name="logout" />
+          </button>
+        </form>
       </div>
     </aside>
   )

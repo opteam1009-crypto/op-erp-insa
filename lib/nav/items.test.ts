@@ -1,13 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { buildNavItems, isNavItemActive, findNavLabel } from './items'
+import { NAV_GROUPS, isNavItemActive, findNavLabel } from './items'
 
-function hrefs(role: 'admin' | 'staff' | 'viewer') {
-  return buildNavItems(role).flatMap((g) => g.items.map((i) => i.href))
-}
-
-describe('buildNavItems', () => {
-  it('gives admin every menu item', () => {
-    expect(hrefs('admin')).toEqual([
+describe('NAV_GROUPS', () => {
+  it('lists every screen the app has', () => {
+    const hrefs = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.href))
+    expect(hrefs).toEqual([
       '/employees',
       '/payroll',
       '/franchise-stores',
@@ -16,33 +13,21 @@ describe('buildNavItems', () => {
     ])
   })
 
-  it('gives staff every menu item', () => {
-    expect(hrefs('staff')).toEqual(hrefs('admin'))
+  it('groups them under 인사 and 정산', () => {
+    expect(NAV_GROUPS.map((g) => g.label)).toEqual(['인사', '정산'])
   })
 
-  it('hides payroll and profit-loss from viewer', () => {
-    expect(hrefs('viewer')).toEqual(['/employees', '/franchise-stores', '/documents'])
-  })
-
-  it('groups items under 인사 and 정산', () => {
-    expect(buildNavItems('admin').map((g) => g.label)).toEqual(['인사', '정산'])
-  })
-
-  it('drops a group that has no visible items', () => {
-    // viewer의 인사 그룹에는 /employees가 남으므로 그룹은 유지된다.
-    // 빈 그룹 제거 자체는 항상 성립해야 한다.
-    for (const role of ['admin', 'staff', 'viewer'] as const) {
-      for (const group of buildNavItems(role)) {
-        expect(group.items.length).toBeGreaterThan(0)
+  it('gives every item an icon', () => {
+    for (const group of NAV_GROUPS) {
+      for (const item of group.items) {
+        expect(item.icon).toBeTruthy()
       }
     }
   })
 
-  it('assigns an icon name to every item', () => {
-    for (const group of buildNavItems('admin')) {
-      for (const item of group.items) {
-        expect(item.icon).toBeTruthy()
-      }
+  it('has no empty group', () => {
+    for (const group of NAV_GROUPS) {
+      expect(group.items.length).toBeGreaterThan(0)
     }
   })
 })
@@ -67,14 +52,14 @@ describe('isNavItemActive', () => {
 
 describe('findNavLabel', () => {
   it('returns the label of the active item', () => {
-    expect(findNavLabel(buildNavItems('admin'), '/profit-loss')).toBe('손익 정산')
+    expect(findNavLabel(NAV_GROUPS, '/profit-loss')).toBe('손익 정산')
   })
 
   it('returns the label for a nested route', () => {
-    expect(findNavLabel(buildNavItems('admin'), '/documents/trash')).toBe('증빙 관리')
+    expect(findNavLabel(NAV_GROUPS, '/documents/trash')).toBe('증빙 관리')
   })
 
   it('returns null when nothing matches', () => {
-    expect(findNavLabel(buildNavItems('admin'), '/nowhere')).toBeNull()
+    expect(findNavLabel(NAV_GROUPS, '/nowhere')).toBeNull()
   })
 })
