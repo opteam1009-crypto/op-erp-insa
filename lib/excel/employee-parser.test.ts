@@ -36,6 +36,8 @@ describe('parseEmployeeExcel', () => {
         position: '매니저',
         employment_type: '정규직',
         hire_date: '2024-01-15',
+        resignation_date: '',
+        status: '재직',
         birth_date: '',
         phone: '',
         emergency_contact: '',
@@ -62,5 +64,104 @@ describe('parseEmployeeExcel', () => {
     const result = parseEmployeeExcel(buffer)
     expect(result.rows).toHaveLength(0)
     expect(result.errors).toEqual([{ row: 2, message: '필수 항목 누락: 이름' }])
+  })
+})
+
+describe('parseEmployeeExcel — 기존 인사대장 형식', () => {
+  it('소속부서/계약형태 같은 별칭 헤더를 읽는다', () => {
+    const buffer = bufferFromRows([
+      { 이름: '변정득', 소속부서: '회계팀', 직급: '차장', 계약형태: '정규직', 입사일: '2020-11-17' },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.errors).toHaveLength(0)
+    expect(result.rows[0]).toMatchObject({
+      name: '변정득',
+      department: '회계팀',
+      employment_type: '정규직',
+    })
+  })
+
+  it('사번이 없어도 통과시킨다 — 채번은 임포트 단계에서 한다', () => {
+    const buffer = bufferFromRows([
+      { 이름: '문성혁', 부서: '', 근로형태: '정규직', 입사일: '2019-10-10' },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.errors).toHaveLength(0)
+    expect(result.rows[0].employee_number).toBe('')
+  })
+
+  it('부서가 비어 있어도 통과시킨다 — DB가 부서 없음을 허용한다', () => {
+    const buffer = bufferFromRows([
+      { 사번: 'E100', 이름: '아리', 부서: '', 근로형태: '계약직', 입사일: '2024-10-07' },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.errors).toHaveLength(0)
+    expect(result.rows[0].department).toBe('')
+  })
+
+  it('재직상태와 퇴사일을 읽는다', () => {
+    const buffer = bufferFromRows([
+      {
+        이름: '김미리',
+        소속부서: '회계팀',
+        계약형태: '정규직',
+        입사일: '2024-03-19',
+        재직상태: '퇴사',
+        퇴사일: '2026-02-20',
+      },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.rows[0]).toMatchObject({ status: '퇴사', resignation_date: '2026-02-20' })
+  })
+
+  it("'재직중'을 DB가 받는 '재직'으로 정규화한다", () => {
+    const buffer = bufferFromRows([
+      { 이름: '이정현', 부서: '영상콘텐츠팀', 근로형태: '정규직', 입사일: '2024-08-26', 재직상태: '재직중' },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.rows[0].status).toBe('재직')
+  })
+
+  it('재직상태가 비어 있고 퇴사일이 있으면 퇴사로 본다', () => {
+    const buffer = bufferFromRows([
+      { 이름: '강유진', 부서: '', 근로형태: '정규직', 입사일: '2024-09-30', 퇴사일: '2025-07-04' },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.rows[0].status).toBe('퇴사')
+  })
+
+  it('재직상태와 퇴사일이 모두 비어 있으면 재직으로 본다', () => {
+    const buffer = bufferFromRows([
+      { 이름: '이정현', 부서: '', 근로형태: '정규직', 입사일: '2024-08-26' },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.rows[0].status).toBe('재직')
+  })
+
+  it('알 수 없는 재직상태는 행 오류로 보고한다', () => {
+    const buffer = bufferFromRows([
+      { 이름: '홍길동', 부서: '', 근로형태: '정규직', 입사일: '2024-01-01', 재직상태: '파견' },
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.rows).toHaveLength(0)
+    expect(result.errors[0].message).toContain('파견')
+  })
+
+  it('이름과 입사일은 여전히 필수다', () => {
+    const buffer = bufferFromRows([{ 사번: 'E1', 이름: '', 부서: '', 근로형태: '정규직', 입사일: '' }])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.rows).toHaveLength(0)
+    expect(result.errors[0].message).toContain('이름')
+    expect(result.errors[0].message).toContain('입사일')
+  })
+
+  it('퇴사일도 엑셀 날짜 셀을 yyyy-MM-dd로 변환한다', () => {
+    const buffer = bufferFromAoa([
+      ['이름', '부서', '근로형태', '입사일', '퇴사일'],
+      ['김현서', '', '정규직', new Date(2024, 6, 8), new Date(2026, 5, 25)],
+    ])
+    const result = parseEmployeeExcel(buffer)
+    expect(result.rows[0].hire_date).toBe('2024-07-08')
+    expect(result.rows[0].resignation_date).toBe('2026-06-25')
   })
 })
