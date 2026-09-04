@@ -32,9 +32,11 @@ Next.js 16 (App Router) + TypeScript + Tailwind v4 + Supabase (Postgres / Auth /
 | 6 | `0006_drop_profiles_insert_self.sql` | **보안**: 자가 admin 승격을 허용하던 죽은 정책 제거 + profiles DELETE 정책 |
 | 7 | `0007_salary_dates.sql` | 연봉 협상 관련 날짜 컬럼(`salary_review_date`, `salary_announce_date`) 추가 |
 | 8 | `0008_notification_log_salary_types.sql` | `notification_log` type CHECK 제약에 `salary_review`/`salary_announce` 포함하도록 확장 |
+| 9 | `0009_franchise_stores.sql` | `franchise_stores` 테이블 + RLS |
+| 10 | `0010_document_transactions.sql` | `documents` 에 거래구분/금액/가맹점 컬럼 추가 |
 
-그 다음 `supabase/seed.sql` 을 실행해 부서 목록을 넣습니다.
-`seed.sql` 의 부서 목록은 플레이스홀더이므로 실제 부서명으로 교체 후 실행하세요.
+그 다음 `supabase/seed.sql` 을 실행해 부서 목록을 넣습니다. 실제 부서명이 이미
+들어 있으므로 그대로 실행하면 됩니다.
 
 마이그레이션 파일은 **append-only** 입니다. 기존 파일을 수정하지 말고 항상 새 번호의 파일을 추가하세요.
 
