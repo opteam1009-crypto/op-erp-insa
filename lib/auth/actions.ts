@@ -1,16 +1,45 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { SESSION_COOKIE, SESSION_MAX_AGE_MS, passwordMatches, signSession } from './session'
+
+export interface SignInResult {
+  error: string
+}
 
 /**
- * 세션을 파기하고 로그인 화면으로 보낸다.
+ * 공용 비밀번호 하나를 확인하고 서명된 세션 쿠키를 심는다.
  *
- * 사이드바 하단의 <form action={signOut}>에서 호출한다. 서버 액션이므로
- * 클라이언트 컴포넌트가 직접 import해도 함수 본문이 번들에 들어가지 않는다.
+ * 실패해도 "비밀번호가 틀렸습니다" 한 가지 메시지만 돌려준다 — 구분할 계정이
+ * 없으므로 더 알려 줄 것도 없다.
  */
+export async function signIn(_prev: SignInResult | null, formData: FormData): Promise<SignInResult> {
+  const secret = process.env.SESSION_SECRET
+  if (!secret) {
+    console.error('SESSION_SECRET is not set; refusing to issue a session.')
+    return { error: '서버 설정이 완료되지 않았습니다. 관리자에게 문의하세요.' }
+  }
+
+  const supplied = String(formData.get('password') ?? '')
+  if (!passwordMatches(process.env.APP_PASSWORD, supplied)) {
+    return { error: '비밀번호가 올바르지 않습니다.' }
+  }
+
+  const store = await cookies()
+  store.set(SESSION_COOKIE, signSession(secret), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: SESSION_MAX_AGE_MS / 1000,
+  })
+
+  redirect('/employees')
+}
+
 export async function signOut(): Promise<void> {
-  const supabase = await createServerSupabase()
-  await supabase.auth.signOut()
+  const store = await cookies()
+  store.delete(SESSION_COOKIE)
   redirect('/login')
 }

@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase/server'
-import { requireUser } from '@/lib/auth/current-user'
-import { permissions } from '@/lib/auth/permissions'
+import { sql } from '@/lib/db/sql'
+import type { Employee } from '@/lib/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -11,9 +10,9 @@ import { buttonClass } from '@/lib/ui/button-class'
 
 export default async function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const user = await requireUser()
-  const supabase = await createServerSupabase()
-  const { data: employee } = await supabase.from('employees').select('*').eq('id', id).single()
+
+
+  const [employee] = (await sql`select * from employees where id = ${id}`) as Employee[]
 
   if (!employee) notFound()
 
@@ -25,11 +24,9 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
         actions={
           <>
             <Badge status={employee.status}>{employee.status}</Badge>
-            {permissions.canManageEmployees(user.role) && (
-              <Link href={`/employees/${id}/edit`} className={buttonClass('secondary')}>
-                수정
-              </Link>
-            )}
+            <Link href={`/employees/${id}/edit`} className={buttonClass('secondary')}>
+              수정
+            </Link>
           </>
         }
       />

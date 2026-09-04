@@ -1,60 +1,21 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { cache } from 'react'
-import { createServerSupabase } from '@/lib/supabase/server'
-import type { Role } from '@/lib/types'
-
-export interface CurrentUser {
-  userId: string
-  email: string
-  role: Role
-}
-
-const ROLES: readonly Role[] = ['admin', 'staff', 'viewer']
-
-/** Narrows an unvalidated DB value to Role so the cast lives in exactly one place. */
-export function isRole(value: unknown): value is Role {
-  return typeof value === 'string' && (ROLES as readonly string[]).includes(value)
-}
+import { SESSION_COOKIE, verifySession } from './session'
 
 /**
- * Resolves the signed-in user and their role in one place.
+ * 로그인 여부만 확인한다. 돌려줄 신원이 없다 — 인증이 공용 비밀번호 하나이므로
+ * 쿠키의 존재가 "비밀번호를 알고 있다"는 유일한 사실이고, 그 이상 구분할 대상이
+ * 없다.
  *
- * Wrapped in React.cache() so that multiple callers within the same request (e.g. the
- * dashboard layout AND the page it renders) collapse into a single Supabase round-trip.
- *
- * Returns null when there is no session, or no profile row for the session user.
+ * 실질적인 차단은 proxy.ts가 요청 단위로 한다. 이 함수는 미들웨어를 우회한
+ * 호출(예: 서버 액션 직접 호출)에 대한 두 번째 검사다.
  */
-export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const supabase = await createServerSupabase()
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth.user) return null
+export async function isSignedIn(): Promise<boolean> {
+  const store = await cookies()
+  return verifySession(store.get(SESSION_COOKIE)?.value, process.env.SESSION_SECRET ?? '')
+}
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, email')
-    .eq('id', auth.user.id)
-    .single()
-
-  if (!profile) return null
-
-  // Fail loudly on an unexpected/corrupted role instead of silently type-asserting it.
-  if (!isRole(profile.role)) {
-    throw new Error(`Unexpected profiles.role value for user ${auth.user.id}: ${String(profile.role)}`)
-  }
-
-  return {
-    userId: auth.user.id,
-    email: (profile.email as string | null) ?? auth.user.email ?? '',
-    role: profile.role,
-  }
-})
-
-/**
- * Server-component/page variant: redirects to /login instead of returning null.
- * Route handlers must NOT use this (they need a 401 JSON body) — call getCurrentUser() there.
- */
-export async function requireUser(): Promise<CurrentUser> {
-  const user = await getCurrentUser()
-  if (!user) redirect('/login')
-  return user
+/** 서버 컴포넌트/페이지용. 로그인하지 않았으면 /login으로 보낸다. */
+export async function requireSession(): Promise<void> {
+  if (!(await isSignedIn())) redirect('/login')
 }

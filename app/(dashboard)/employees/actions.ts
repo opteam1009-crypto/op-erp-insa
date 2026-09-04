@@ -1,76 +1,85 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { sql } from '@/lib/db/sql'
 import { employeeSchema, type EmployeeInput } from '@/lib/validation/employee'
-import { getCurrentUser } from '@/lib/auth/current-user'
-import { permissions } from '@/lib/auth/permissions'
+import { isSignedIn } from '@/lib/auth/current-user'
 import { calculateContractReviewDate } from '@/lib/scheduling/contract-dates'
 
+/** 빈 문자열은 날짜 컬럼에 넣을 수 없다. NULL로 바꾼다. */
+function orNull(value: string | null | undefined): string | null {
+  return value ? value : null
+}
+
 export async function createEmployee(input: EmployeeInput) {
-  // A server action is a directly-callable endpoint, so it needs the same
-  // session + role gate as the page that renders the form.
-  const user = await getCurrentUser()
-  if (!user) return { error: '로그인이 필요합니다' }
-  if (!permissions.canManageEmployees(user.role)) {
-    return { error: '권한이 없습니다' }
-  }
+  // 서버 액션은 직접 호출 가능한 엔드포인트라 proxy.ts를 우회한다. 세션 검사가
+  // 여기에도 있어야 한다.
+  if (!(await isSignedIn())) return { error: '로그인이 필요합니다' }
 
   const parsed = employeeSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues.map((i) => i.message).join(', ') }
   }
 
-  const supabase = await createServerSupabase()
+  const d = parsed.data
 
-  const { error } = await supabase.from('employees').insert({
-    ...parsed.data,
-    department_id: parsed.data.department_id || null,
-    birth_date: parsed.data.birth_date || null,
-    // Always computed at creation time — never taken from client input, even
-    // though the create form no longer sends this field at all (defense in depth).
-    contract_review_date: calculateContractReviewDate(parsed.data.hire_date),
-    contract_announce_date: parsed.data.contract_announce_date || null,
-    salary_review_date: parsed.data.salary_review_date || null,
-    salary_announce_date: parsed.data.salary_announce_date || null,
-    created_by: user.userId,
-  })
-
-  if (error) return { error: error.message }
+  try {
+    await sql`
+      insert into employees (
+        employee_number, name, department_id, position, employment_type,
+        hire_date, birth_date, phone, emergency_contact,
+        contract_review_date, contract_announce_date,
+        salary_review_date, salary_announce_date
+      ) values (
+        ${d.employee_number}, ${d.name}, ${orNull(d.department_id)}, ${d.position ?? ''},
+        ${d.employment_type}, ${d.hire_date}, ${orNull(d.birth_date)}, ${d.phone ?? ''},
+        ${d.emergency_contact ?? ''},
+        -- 등록 시점에 항상 계산한다. 클라이언트 입력을 받지 않는다.
+        ${calculateContractReviewDate(d.hire_date)},
+        ${orNull(d.contract_announce_date)},
+        ${orNull(d.salary_review_date)}, ${orNull(d.salary_announce_date)}
+      )
+    `
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : '저장에 실패했습니다' }
+  }
 
   revalidatePath('/employees')
   return { error: null }
 }
 
 export async function updateEmployee(id: string, input: EmployeeInput) {
-  const user = await getCurrentUser()
-  if (!user) return { error: '로그인이 필요합니다' }
-  if (!permissions.canManageEmployees(user.role)) {
-    return { error: '권한이 없습니다' }
-  }
+  if (!(await isSignedIn())) return { error: '로그인이 필요합니다' }
 
   const parsed = employeeSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues.map((i) => i.message).join(', ') }
   }
 
-  const supabase = await createServerSupabase()
+  const d = parsed.data
 
-  const { error } = await supabase
-    .from('employees')
-    .update({
-      ...parsed.data,
-      department_id: parsed.data.department_id || null,
-      birth_date: parsed.data.birth_date || null,
-      contract_review_date: parsed.data.contract_review_date || null,
-      contract_announce_date: parsed.data.contract_announce_date || null,
-      salary_review_date: parsed.data.salary_review_date || null,
-      salary_announce_date: parsed.data.salary_announce_date || null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-
-  if (error) return { error: error.message }
+  try {
+    await sql`
+      update employees set
+        employee_number = ${d.employee_number},
+        name = ${d.name},
+        department_id = ${orNull(d.department_id)},
+        position = ${d.position ?? ''},
+        employment_type = ${d.employment_type},
+        hire_date = ${d.hire_date},
+        birth_date = ${orNull(d.birth_date)},
+        phone = ${d.phone ?? ''},
+        emergency_contact = ${d.emergency_contact ?? ''},
+        contract_review_date = ${orNull(d.contract_review_date)},
+        contract_announce_date = ${orNull(d.contract_announce_date)},
+        salary_review_date = ${orNull(d.salary_review_date)},
+        salary_announce_date = ${orNull(d.salary_announce_date)},
+        updated_at = now()
+      where id = ${id}
+    `
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : '저장에 실패했습니다' }
+  }
 
   revalidatePath('/employees')
   revalidatePath(`/employees/${id}`)

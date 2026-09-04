@@ -1,60 +1,40 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { isPublicPath, isAdminOnlyPath } from '@/lib/auth/route-guard'
+import { SESSION_COOKIE, verifySession } from '@/lib/auth/session'
 
 /**
- * Copies any auth cookies Supabase wrote onto `source` (via setAll) over to a redirect
- * response. Returning a freshly-constructed NextResponse.redirect() without doing this
- * silently discards a just-refreshed session token.
+ * 인가는 여기 한 곳이다.
+ *
+ * Supabase 시절에는 앱이 권한을 검사하고 RLS가 DB에서 한 번 더 막았다. Neon에는
+ * 앱 role 하나로 붙으므로 DB가 걸러 주는 것이 없다 — 이 검사를 통과하지 않는
+ * 경로를 만들면 그대로 열린다. 새 라우트를 추가할 때 matcher에서 빠지지 않는지
+ * 확인할 것.
  */
-function redirectTo(path: string, request: NextRequest, source: NextResponse) {
-  const redirectResponse = NextResponse.redirect(new URL(path, request.url))
-  source.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
-  return redirectResponse
-}
+const PUBLIC_PATHS = ['/login']
 
-export async function proxy(request: NextRequest) {
-  const response = NextResponse.next()
+const CRON_PREFIX = '/api/cron/'
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          // `options` carries maxAge/sameSite/path/secure — dropping it downgrades the
-          // refreshed auth cookie to a browser-session cookie (logout on browser restart).
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // 크론 라우트는 사람이 아니라 Vercel Cron이 부른다. 세션 쿠키가 없고, 대신
+  // 각 라우트가 Authorization 헤더의 CRON_SECRET을 직접 검증한다.
+  if (pathname.startsWith(CRON_PREFIX)) return NextResponse.next()
+
+  const authenticated = verifySession(
+    request.cookies.get(SESSION_COOKIE)?.value,
+    process.env.SESSION_SECRET ?? ''
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const pathname = request.nextUrl.pathname
-
-  if (!user && !isPublicPath(pathname)) {
-    return redirectTo('/login', request, response)
+  if (!authenticated && !PUBLIC_PATHS.includes(pathname)) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && isAdminOnlyPath(pathname)) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return redirectTo('/employees', request, response)
-    }
+  // 이미 로그인한 사람이 /login을 열면 목록으로 보낸다.
+  if (authenticated && pathname === '/login') {
+    return NextResponse.redirect(new URL('/employees', request.url))
   }
 
-  return response
+  return NextResponse.next()
 }
 
 export const config = {

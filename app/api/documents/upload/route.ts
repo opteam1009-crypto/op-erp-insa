@@ -1,17 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { sql } from '@/lib/db/sql'
+import { storeFile } from '@/lib/storage/blob'
 import { documentMetaSchema, MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES } from '@/lib/validation/document'
-import { getCurrentUser } from '@/lib/auth/current-user'
-import { permissions } from '@/lib/auth/permissions'
+import { isSignedIn } from '@/lib/auth/current-user'
 
 export async function POST(request: NextRequest) {
-  const user = await getCurrentUser()
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  if (!permissions.canUploadDocuments(user.role)) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
-  }
-
-  const supabase = await createServerSupabase()
+  if (!(await isSignedIn())) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
@@ -40,24 +34,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues.map((i) => i.message).join(', ') }, { status: 400 })
   }
 
-  const filePath = `${parsed.data.year}/${parsed.data.month}/${Date.now()}-${file.name}`
+  const d = parsed.data
   const buffer = await file.arrayBuffer()
 
-  const { error: uploadError } = await supabase.storage.from('documents').upload(filePath, buffer, {
-    contentType: file.type,
-  })
+  let stored
+  try {
+    stored = await storeFile('document', `${d.year}/${d.month}/${file.name}`, buffer, file.type)
+  } catch (error) {
+    console.error('Failed to store document file:', error)
+    return NextResponse.json({ error: '파일 저장에 실패했습니다' }, { status: 500 })
+  }
 
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
-
-  const { error: insertError } = await supabase.from('documents').insert({
-    ...parsed.data,
-    file_path: filePath,
-    file_name: file.name,
-    file_size: file.size,
-    uploaded_by: user.userId,
-  })
-
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+  try {
+    await sql`
+      insert into documents (
+        doc_type, year, month, vendor_name, transaction_type, amount,
+        franchise_store_id, file_path, file_name, file_size
+      ) values (
+        ${d.doc_type}, ${d.year}, ${d.month}, ${d.vendor_name ?? null},
+        ${d.transaction_type}, ${d.amount}, ${d.franchise_store_id},
+        ${stored.pathname}, ${file.name}, ${file.size}
+      )
+    `
+  } catch (error) {
+    console.error('Failed to record document:', error)
+    return NextResponse.json({ error: '저장에 실패했습니다' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }

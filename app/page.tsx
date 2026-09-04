@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { requireUser } from '@/lib/auth/current-user'
+import { requireSession } from '@/lib/auth/current-user'
 
 export default async function Home() {
-  // Redirects to /login when there is no session; otherwise straight into the app.
-  await requireUser()
+  // 세션이 없으면 /login으로, 있으면 곧장 앱으로.
+  await requireSession()
   redirect('/employees')
 }

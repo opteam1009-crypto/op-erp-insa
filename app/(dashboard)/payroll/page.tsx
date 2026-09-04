@@ -1,30 +1,28 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase/server'
-import { requireUser } from '@/lib/auth/current-user'
-import { permissions } from '@/lib/auth/permissions'
+
+import { sql } from '@/lib/db/sql'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 import { Alert } from '@/components/ui/Alert'
 import { buttonClass } from '@/lib/ui/button-class'
 
+interface PayrollEmployee {
+  id: string
+  employee_number: string
+  name: string
+}
+
 export default async function PayrollPage() {
-  const user = await requireUser()
+  let employees: PayrollEmployee[]
 
-  if (!permissions.canViewPayroll(user.role)) {
-    redirect('/employees')
-  }
-
-  const supabase = await createServerSupabase()
-  const { data: employees, error: employeesError } = await supabase
-    .from('employees')
-    .select('id, employee_number, name')
-    .order('employee_number')
-
-  // 조회 실패를 빈 목록으로 흘려보내면 "등록된 사원이 없습니다"라는 빈 상태가
-  // 떠서, 데이터가 없는 것과 못 불러온 것을 구분할 수 없게 된다.
-  if (employeesError) {
-    console.error('Failed to load employees for payroll:', employeesError)
+  try {
+    employees = (await sql`
+      select id, employee_number, name from employees order by employee_number
+    `) as PayrollEmployee[]
+  } catch (error) {
+    // 조회 실패를 빈 목록으로 흘려보내면 "등록된 사원이 없습니다"라는 빈 상태가
+    // 떠서, 데이터가 없는 것과 못 불러온 것을 구분할 수 없게 된다.
+    console.error('Failed to load employees for payroll:', error)
     return <Alert variant="error">사원 목록을 불러오지 못했습니다. 관리자에게 문의하세요.</Alert>
   }
 
@@ -40,7 +38,7 @@ export default async function PayrollPage() {
           </TR>
         </THead>
         <TBody>
-          {employees?.length ? (
+          {employees.length ? (
             employees.map((emp) => (
               <TR key={emp.id}>
                 <TD className="tnum">{emp.employee_number}</TD>
