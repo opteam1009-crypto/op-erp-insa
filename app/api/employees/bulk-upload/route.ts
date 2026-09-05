@@ -3,7 +3,7 @@ import { sql } from '@/lib/db/sql'
 import { parseEmployeeExcel } from '@/lib/excel/employee-parser'
 import { employeeSchema } from '@/lib/validation/employee'
 import { isSignedIn } from '@/lib/auth/current-user'
-import { calculateContractReviewDate } from '@/lib/scheduling/contract-dates'
+import { calculateContractReviewDate, calculateContractEndDate } from '@/lib/scheduling/contract-dates'
 
 export async function POST(request: NextRequest) {
   if (!(await isSignedIn())) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         insert into employees (
           employee_number, name, department_id, position, employment_type,
           hire_date, birth_date, phone, emergency_contact,
-          status, resignation_date, contract_review_date
+          status, resignation_date, contract_review_date, contract_end_date
         ) values (
           ${d.employee_number}, ${d.name}, ${d.department_id || null}, ${d.position ?? ''},
           ${d.employment_type}, ${d.hire_date}, ${d.birth_date || null}, ${d.phone ?? ''},
@@ -78,7 +78,8 @@ export async function POST(request: NextRequest) {
           -- 파서가 정규화한 값. 넘기지 않으면 기본값 '재직'이 붙어 퇴사자가
           -- 재직중으로 들어간다.
           ${row.status}, ${row.resignation_date || null},
-          ${calculateContractReviewDate(d.hire_date)}
+          ${calculateContractReviewDate(d.hire_date)},
+          ${calculateContractEndDate(d.hire_date)}
         )
       `
       inserted.push(employeeNumber)

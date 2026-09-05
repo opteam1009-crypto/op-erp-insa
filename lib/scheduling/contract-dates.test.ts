@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateContractReviewDate } from './contract-dates'
+import { calculateContractReviewDate, calculateContractEndDate } from './contract-dates'
 
 describe('calculateContractReviewDate', () => {
   it('adds 3 months and keeps the date when the result is a weekday', () => {
@@ -21,5 +21,22 @@ describe('calculateContractReviewDate', () => {
     // 2026-11-30 + 3 months: February 2027 has no 30th, so date-fns clamps to
     // 2027-02-28 -- which is a Sunday, so it rolls forward to 2027-03-01 (Monday).
     expect(calculateContractReviewDate('2026-11-30')).toBe('2027-03-01')
+  })
+})
+
+describe('calculateContractEndDate', () => {
+  it('is the hire date plus three calendar months', () => {
+    expect(calculateContractEndDate('2024-03-19')).toBe('2024-06-19')
+  })
+
+  it('does not roll off a weekend, unlike the review date', () => {
+    // 2026-01-19 + 3 months = 2026-04-19, a Sunday. 평가일은 월요일로 밀리지만
+    // 계약 만료는 달력상의 날짜라 일요일에 끝난다.
+    expect(calculateContractEndDate('2026-01-19')).toBe('2026-04-19')
+    expect(calculateContractReviewDate('2026-01-19')).toBe('2026-04-20')
+  })
+
+  it('clamps to the last day when the target month is shorter', () => {
+    expect(calculateContractEndDate('2026-11-30')).toBe('2027-02-28')
   })
 })

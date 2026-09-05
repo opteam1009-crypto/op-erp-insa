@@ -17,6 +17,10 @@ export interface Employee {
   contract_announce_date: string | null
   salary_review_date: string | null
   salary_announce_date: string | null
+  job_title: string | null
+  contract_end_date: string | null
+  regular_conversion_date: string | null
+  salary_negotiation_month: number | null
 }
 
 export interface DocumentRecord {
