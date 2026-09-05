@@ -1,14 +1,12 @@
 import Link from 'next/link'
 import { sql } from '@/lib/db/sql'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Card, CardBody } from '@/components/ui/Card'
-import { Field, Select } from '@/components/ui/Field'
-import { Button } from '@/components/ui/Button'
 import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 import { Alert } from '@/components/ui/Alert'
 import { buttonClass } from '@/lib/ui/button-class'
 import { NewEmployeeModalButton } from './NewEmployeeModalButton'
 import { InlineCell } from './InlineCell'
+import { EmployeeFilters } from './EmployeeFilters'
 
 interface EmployeeRow {
   id: string
@@ -106,61 +104,15 @@ export default async function EmployeesPage({
         }
       />
 
-      <div className="mb-4">
-        <Card>
-          <CardBody padding="snug">
-            <form className="flex flex-wrap items-end gap-3">
-              <Field label="부서" htmlFor="dept" className="w-44">
-                <Select id="dept" name="dept" defaultValue={dept ?? ''}>
-                  <option value="">전체</option>
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="직책" htmlFor="title" className="w-36">
-                <Select id="title" name="title" defaultValue={title ?? ''}>
-                  <option value="">전체</option>
-                  {jobTitles.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="근로형태" htmlFor="type" className="w-32">
-                <Select id="type" name="type" defaultValue={empType ?? ''}>
-                  <option value="">전체</option>
-                  {EMPLOYMENT_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="재직상태" htmlFor="status" className="w-32">
-                <Select id="status" name="status" defaultValue={status ?? ''}>
-                  <option value="">전체</option>
-                  {STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Button type="submit" variant="secondary">
-                조회
-              </Button>
-              {filtered && (
-                <Link href="/employees" className={buttonClass('secondary')}>
-                  초기화
-                </Link>
-              )}
-            </form>
-          </CardBody>
-        </Card>
+      {/* 카드로 감싸지 않는다. 표 위에 얹는 보조 컨트롤이라 테두리 상자를
+          하나 더 두면 정작 봐야 할 표와 무게가 비슷해진다. */}
+      <div className="mb-3">
+        <EmployeeFilters
+          departments={departments}
+          jobTitles={jobTitles}
+          employmentTypes={EMPLOYMENT_TYPES}
+          statuses={STATUSES}
+        />
       </div>
 
       <Table>
