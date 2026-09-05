@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 import { Alert } from '@/components/ui/Alert'
 import { Badge } from '@/components/ui/Badge'
-import { toneForDepartment } from '@/lib/ui/badge-tone'
+import { hueForDepartmentIndex } from '@/lib/ui/badge-tone'
 import { buttonClass } from '@/lib/ui/button-class'
 import { NewEmployeeModalButton } from './NewEmployeeModalButton'
 import { InlineCell } from './InlineCell'
@@ -101,6 +101,12 @@ export default async function EmployeesPage({
 
   const filtered = Boolean(dept || title || status || empType || query)
 
+  // 부서 목록은 이름순으로 받아 온다. 그 순번이 곧 배지 색이므로, 어떤 필터가
+  // 걸려 있든 같은 부서는 늘 같은 색이다.
+  const hueByDepartment = new Map(
+    departments.map((d, index) => [d.name, hueForDepartmentIndex(index)])
+  )
+
   return (
     <div>
       <PageHeader
@@ -157,7 +163,7 @@ export default async function EmployeesPage({
                 <TD>{emp.name}</TD>
                 <TD>
                   {emp.department_name ? (
-                    <Badge tone={toneForDepartment(emp.department_name)}>
+                    <Badge hue={hueByDepartment.get(emp.department_name)}>
                       {emp.department_name}
                     </Badge>
                   ) : (

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toneForDepartment, toneForStatus } from './badge-tone'
+import { hueForDepartmentIndex, toneForStatus } from './badge-tone'
 
 describe('toneForStatus', () => {
   it('maps healthy states to positive', () => {
@@ -42,18 +42,23 @@ describe('toneForStatus', () => {
   })
 })
 
-describe('toneForDepartment', () => {
-  it('gives one department the same colour every time', () => {
-    expect(toneForDepartment('개발팀')).toBe(toneForDepartment('개발팀'))
+describe('hueForDepartmentIndex', () => {
+  it('gives every department its own colour at the sizes we actually have', () => {
+    // 지금 17개다. 고정 팔레트를 쓰던 때는 여기서 색이 겹쳤다.
+    const hues = Array.from({ length: 30 }, (_, i) => hueForDepartmentIndex(i))
+    expect(new Set(hues).size).toBe(hues.length)
   })
 
-  it('separates departments that differ by a single character', () => {
-    // 콘텐츠팀 / 매장콘텐츠팀처럼 이름이 겹치는 부서가 실제로 있다.
-    expect(toneForDepartment('콘텐츠팀')).not.toBe(toneForDepartment('매장콘텐츠팀'))
+  it('keeps neighbouring entries far apart on the wheel', () => {
+    for (let i = 0; i < 20; i++) {
+      const gap = Math.abs(hueForDepartmentIndex(i + 1) - hueForDepartmentIndex(i))
+      expect(Math.min(gap, 360 - gap)).toBeGreaterThan(80)
+    }
   })
 
-  it('falls back to neutral when there is no department', () => {
-    expect(toneForDepartment(null)).toBe('neutral')
-    expect(toneForDepartment('')).toBe('neutral')
+  it('does not move the colours already in use when a department is added', () => {
+    // 부서를 하나 더 만들었다고 어제 보던 부서 색이 전부 바뀌면 안 된다.
+    expect(hueForDepartmentIndex(0)).toBe(0)
+    expect(hueForDepartmentIndex(5)).toBe(hueForDepartmentIndex(5))
   })
 })

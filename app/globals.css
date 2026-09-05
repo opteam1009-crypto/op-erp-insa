@@ -90,3 +90,20 @@ body {
 .date-bare::-webkit-calendar-picker-indicator {
   display: none;
 }
+
+/*
+ * 부서 배지. 색을 클래스로 고르지 않고 --badge-h(색상각)만 받아 칠한다.
+ *
+ * 팔레트를 N개 정해 두면 부서가 N개를 넘는 순간 서로 다른 부서가 같은 색이
+ * 된다 — 17개 부서를 8색에 담았을 때 실제로 그랬다. 채도와 명도는 여기서
+ * 고정하므로 어떤 색상각이 와도 대비는 일정하게 유지된다.
+ */
+.badge-hue {
+  background: hsl(var(--badge-h) 68% 92%);
+  color: hsl(var(--badge-h) 55% 28%);
+}
+
+[data-theme='dark'] .badge-hue {
+  background: hsl(var(--badge-h) 38% 20%);
+  color: hsl(var(--badge-h) 70% 76%);
+}

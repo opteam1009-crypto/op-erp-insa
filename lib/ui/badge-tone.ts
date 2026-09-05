@@ -40,25 +40,22 @@ const TONE_BY_STATUS: Record<string, BadgeTone> = {
   프리랜서: 'neutral',
 }
 
-/** 부서 색은 이름으로 정해진다. 부서가 늘어도 손댈 곳이 없고, 같은 부서는 늘
- *  같은 색이라 목록을 훑을 때 위치가 아니라 색으로 묶여 읽힌다. */
-const DEPARTMENT_TONES: readonly BadgeTone[] = [
-  'violet',
-  'sky',
-  'emerald',
-  'amber',
-  'rose',
-  'teal',
-  'orange',
-  'cyan',
-]
-
-export function toneForDepartment(name: string | null | undefined): BadgeTone {
-  if (!name) return 'neutral'
-  let hash = 0
-  for (const char of name) hash = (hash * 31 + (char.codePointAt(0) ?? 0)) >>> 0
-  return DEPARTMENT_TONES[hash % DEPARTMENT_TONES.length]
+/**
+ * 부서 배지의 색상각. 부서 목록에서의 순번을 받는다.
+ *
+ * 황금각(137.5°)씩 돌린다. 360/n으로 균등 분할하면 부서가 늘어날 때마다 모든
+ * 부서의 색이 한꺼번에 바뀌지만, 황금각은 앞 순번의 색을 그대로 두고 남은
+ * 틈에 새 색을 끼워 넣는다 — 부서를 하나 추가했다고 어제 보던 색이 전부
+ * 달라지지 않는다. 순번이 이웃해도 137도씩 떨어지므로 목록에서 나란히 놓인
+ * 부서끼리 특히 잘 구별된다.
+ *
+ * 순번은 부서 이름 정렬 순이다. id로 잡으면 uuid라 순서가 무의미하고, 이름이
+ * 바뀌면 색도 바뀌지만 그건 사실상 다른 부서가 된 경우다.
+ */
+export function hueForDepartmentIndex(index: number): number {
+  return Math.round((index * 137.508) % 360)
 }
+
 
 export function toneForStatus(status: string | null | undefined): BadgeTone {
   if (!status) return 'neutral'

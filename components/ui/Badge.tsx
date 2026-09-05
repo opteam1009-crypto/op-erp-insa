@@ -22,19 +22,26 @@ export function Badge({
   children,
   tone,
   status,
+  hue,
 }: {
   children: React.ReactNode
   /** 명시적 색조. 주면 status 자동 판별보다 우선한다. */
   tone?: BadgeTone
   /** 도메인 상태 문자열. 색조를 자동으로 정한다. */
   status?: string | null
+  /** 0~359 색상각. 부서처럼 '좋다/나쁘다'가 없고 서로 구별만 되면 되는 값에
+   *  쓴다. 주면 tone/status보다 우선한다. */
+  hue?: number
 }) {
-  const resolved = tone ?? toneForStatus(status)
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium ${TONE_CLASS[resolved]}`}
-    >
-      {children}
-    </span>
-  )
+  const base = 'inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium'
+
+  if (hue !== undefined) {
+    return (
+      <span className={`${base} badge-hue`} style={{ '--badge-h': hue } as React.CSSProperties}>
+        {children}
+      </span>
+    )
+  }
+
+  return <span className={`${base} ${TONE_CLASS[tone ?? toneForStatus(status)]}`}>{children}</span>
 }
