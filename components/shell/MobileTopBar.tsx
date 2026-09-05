@@ -5,14 +5,18 @@ import { usePathname } from 'next/navigation'
 import { findNavLabel, type NavGroup } from '@/lib/nav/items'
 import { buttonClass } from '@/lib/ui/button-class'
 import { Icon } from './icons'
+import { NotificationBell } from './NotificationBell'
+import type { UpcomingItem } from '@/lib/notifications/upcoming'
 
 export function MobileTopBar({
   nav,
+  upcoming,
   onOpen,
   menuButtonRef,
   inert,
 }: {
   nav: NavGroup[]
+  upcoming: UpcomingItem[]
   onOpen: () => void
   /** AppShell owns this so it can return focus here when the drawer is dismissed. */
   menuButtonRef: Ref<HTMLButtonElement>
@@ -39,6 +43,9 @@ export function MobileTopBar({
         <Icon name="menu" size={18} />
       </button>
       <span className="text-[15px] font-semibold text-fg">{title}</span>
+      <div className="ml-auto">
+        <NotificationBell items={upcoming} />
+      </div>
     </div>
   )
 }

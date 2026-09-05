@@ -1,6 +1,6 @@
 import type { NavIconName } from '@/lib/nav/items'
 
-export type IconName = NavIconName | 'menu' | 'close' | 'sun' | 'moon' | 'logout'
+export type IconName = NavIconName | 'menu' | 'close' | 'sun' | 'moon' | 'logout' | 'bell'
 
 const PATHS: Record<IconName, React.ReactNode> = {
   users: (
@@ -50,6 +50,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M9 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3" />
       <path d="M15.5 15.5 19 12l-3.5-3.5M19 12H9.5" strokeLinecap="round" />
+    </>
+  ),
+  bell: (
+    <>
+      <path d="M18 15.5V10a6 6 0 1 0-12 0v5.5L4.5 18h15L18 15.5Z" strokeLinecap="round" />
+      <path d="M10 20.5a2.2 2.2 0 0 0 4 0" strokeLinecap="round" />
     </>
   ),
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { usePathname } from 'next/navigation'
 import type { NavGroup } from '@/lib/nav/items'
+import type { UpcomingItem } from '@/lib/notifications/upcoming'
 import { Sidebar } from './Sidebar'
 import { MobileTopBar } from './MobileTopBar'
 
@@ -29,9 +30,12 @@ function getIsDesktopServerSnapshot(): boolean {
 
 export function AppShell({
   nav,
+  upcoming,
   children,
 }: {
   nav: NavGroup[]
+  /** 종 아이콘이 보여줄 다가오는 일정. 레이아웃이 서버에서 조회해 내려준다. */
+  upcoming: UpcomingItem[]
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
@@ -102,6 +106,7 @@ export function AppShell({
     <div className="min-h-full">
       <MobileTopBar
         nav={nav}
+        upcoming={upcoming}
         onOpen={() => setOpen(true)}
         menuButtonRef={menuButtonRef}
         inert={open}
@@ -115,7 +120,13 @@ export function AppShell({
         />
       )}
 
-      <Sidebar nav={nav} open={open} onClose={closeDrawer} isDesktop={isDesktop} />
+      <Sidebar
+        nav={nav}
+        upcoming={upcoming}
+        open={open}
+        onClose={closeDrawer}
+        isDesktop={isDesktop}
+      />
 
       {/* 드로어가 열려 있는 동안 배경 콘텐츠를 포커스/접근성 트리에서 제거한다.
           별도의 포커스 트랩이 필요 없는 이유: inert가 Tab 이동과 스크린리더

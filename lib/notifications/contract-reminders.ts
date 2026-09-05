@@ -10,7 +10,7 @@ export function shouldRemind(targetDate: string, today: string, kind: ReminderKi
   return days === 3 || days === 1
 }
 
-const KIND_LABELS: Record<ReminderKind, string> = {
+export const KIND_LABELS: Record<ReminderKind, string> = {
   contract_review: '정규직 전환 평가일',
   contract_announce: '정규직 전환 발표일',
   salary_review: '연봉협상 평가일',

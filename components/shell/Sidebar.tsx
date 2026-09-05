@@ -7,14 +7,18 @@ import { signOut } from '@/lib/auth/actions'
 import { buttonClass } from '@/lib/ui/button-class'
 import { Icon } from './icons'
 import { ThemeToggle } from './ThemeToggle'
+import { NotificationBell } from './NotificationBell'
+import type { UpcomingItem } from '@/lib/notifications/upcoming'
 
 export function Sidebar({
   nav,
+  upcoming,
   open,
   onClose,
   isDesktop,
 }: {
   nav: NavGroup[]
+  upcoming: UpcomingItem[]
   open: boolean
   onClose: () => void
   /** md 이상 여부. 오프캔버스(모바일에서 닫힘) 판정에만 쓴다 — 데스크톱에서는
@@ -97,6 +101,7 @@ export function Sidebar({
       {/* 이름도 역할도 표시하지 않는다 — 공용 비밀번호 하나라 표시할 신원이
           없다. 테마 토글과 로그아웃만 남는다. */}
       <div className="flex items-center justify-end gap-1 border-t border-border px-3 py-3">
+        <NotificationBell items={upcoming} side="top" align="left" />
         <ThemeToggle />
         <form action={signOut}>
           <button
