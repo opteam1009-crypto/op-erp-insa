@@ -51,7 +51,11 @@ export function InlineCell({ id, field, value, options, type = 'text', placehold
   const shared = {
     disabled: pending,
     'aria-invalid': error ? true : undefined,
-    className: `${CONTROL} ${field === 'status' ? STATUS_CLASS[current] ?? '' : ''} ${
+    // 닫힌 상태의 재직상태 글자는 색을 유지하되(목록을 훑을 때 색으로 읽힌다),
+    // 펼친 목록의 항목까지 그 색으로 칠해지지는 않게 한다.
+    className: `${CONTROL} [&>option]:bg-surface [&>option]:text-fg ${
+      field === 'status' ? STATUS_CLASS[current] ?? '' : ''
+    } ${
       type === 'date' ? 'date-bare' : ''
     } ${error ? 'border-negative' : ''}`,
   }

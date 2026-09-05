@@ -61,7 +61,9 @@ function FilterChip({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-default"
+        // 열리는 목록은 OS가 그리면서 select의 color를 물려받는다. 칩이
+        // 활성일 때 상속되는 액센트색이 항목 글자까지 물들이므로 여기서 끊는다.
+        className="absolute inset-0 cursor-pointer text-fg opacity-0 [&>option]:bg-surface [&>option]:text-fg disabled:cursor-default"
       >
         <option value="">전체</option>
         {options.map((o) => (
