@@ -8,6 +8,7 @@ import type { DepartmentOption } from '../new/NewEmployeeForm'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Field, Input, Select } from '@/components/ui/Field'
+import { POSITIONS } from '@/lib/validation/employee'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 
@@ -96,7 +97,19 @@ export function EditEmployeeForm({
               </Select>
             </Field>
             <Field label="직급" htmlFor="position">
-              <Input id="position" name="position" defaultValue={employee.position ?? ''} />
+              <Select id="position" name="position" defaultValue={employee.position ?? ''}>
+                <option value="">선택 안 함</option>
+                {/* 대장에서 넘어온 값이 목록에 없을 수 있다. 그대로 남겨 두지
+                    않으면 다른 항목을 고르지 않았는데도 저장 때 바뀐다. */}
+                {(POSITIONS.includes(employee.position as (typeof POSITIONS)[number])
+                  ? POSITIONS
+                  : [...POSITIONS, employee.position].filter(Boolean)
+                ).map((p) => (
+                  <option key={p as string} value={p as string}>
+                    {p as string}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <Field label="근로형태" htmlFor="employment_type">
               <Select id="employment_type" name="employment_type" defaultValue={employee.employment_type} required>

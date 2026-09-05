@@ -3,6 +3,8 @@ import { sql } from '@/lib/db/sql'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Table, THead, TBody, TR, TH, TD, TableEmpty } from '@/components/ui/Table'
 import { Alert } from '@/components/ui/Alert'
+import { Badge } from '@/components/ui/Badge'
+import { toneForDepartment } from '@/lib/ui/badge-tone'
 import { buttonClass } from '@/lib/ui/button-class'
 import { NewEmployeeModalButton } from './NewEmployeeModalButton'
 import { InlineCell } from './InlineCell'
@@ -153,11 +155,21 @@ export default async function EmployeesPage({
                   </Link>
                 </TD>
                 <TD>{emp.name}</TD>
-                <TD>{emp.department_name ?? '-'}</TD>
+                <TD>
+                  {emp.department_name ? (
+                    <Badge tone={toneForDepartment(emp.department_name)}>
+                      {emp.department_name}
+                    </Badge>
+                  ) : (
+                    '-'
+                  )}
+                </TD>
                 {/* 입사일을 고치면 수습평가일과 계약만료일 계산이 함께 흔들린다.
                     목록에서는 읽기만 하고, 수정은 상세 페이지에서 한다. */}
                 <TD className="tnum whitespace-nowrap">{emp.hire_date}</TD>
-                <TD>{emp.employment_type}</TD>
+                <TD>
+                  <Badge status={emp.employment_type}>{emp.employment_type}</Badge>
+                </TD>
                 <TD className="w-[110px]">
                   <InlineCell
                     id={emp.id}
@@ -171,6 +183,8 @@ export default async function EmployeesPage({
                     id={emp.id}
                     field="status"
                     value={emp.status}
+                    variant="badge"
+                    placeholder="재직상태"
                     options={STATUSES.map((v) => ({ value: v, label: v }))}
                   />
                 </TD>

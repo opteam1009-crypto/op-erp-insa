@@ -3,19 +3,14 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateEmployeeField, type InlineField } from './actions'
+import { TONE_CLASS } from '@/components/ui/Badge'
+import { toneForStatus } from '@/lib/ui/badge-tone'
 
 const CONTROL =
   'w-full rounded border border-transparent bg-transparent px-1.5 py-1 text-[13px] text-fg ' +
   'transition-colors hover:border-border-strong hover:bg-surface-2 ' +
   'focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent ' +
   'disabled:opacity-50'
-
-/** 재직상태는 목록을 훑을 때 색으로 먼저 읽힌다. 셀렉트로 바꿔도 그 색은 남긴다. */
-const STATUS_CLASS: Record<string, string> = {
-  재직: 'text-positive',
-  휴직: 'text-warning',
-  퇴사: 'text-negative',
-}
 
 interface Props {
   id: string
@@ -25,9 +20,20 @@ interface Props {
   options?: { value: string; label: string }[]
   type?: 'text' | 'date'
   placeholder?: string
+  /** 'badge'면 배지 모양으로 그린다. 값 자체가 상태인 열(재직상태)은 목록을
+   *  훑을 때 색으로 먼저 읽히는데, 보통 셀렉트로는 그 덩어리가 안 보인다. */
+  variant?: 'plain' | 'badge'
 }
 
-export function InlineCell({ id, field, value, options, type = 'text', placeholder }: Props) {
+export function InlineCell({
+  id,
+  field,
+  value,
+  options,
+  type = 'text',
+  placeholder,
+  variant = 'plain',
+}: Props) {
   const router = useRouter()
   const [current, setCurrent] = useState(value)
   const [error, setError] = useState<string | null>(null)
@@ -51,13 +57,56 @@ export function InlineCell({ id, field, value, options, type = 'text', placehold
   const shared = {
     disabled: pending,
     'aria-invalid': error ? true : undefined,
-    // 닫힌 상태의 재직상태 글자는 색을 유지하되(목록을 훑을 때 색으로 읽힌다),
-    // 펼친 목록의 항목까지 그 색으로 칠해지지는 않게 한다.
+    // 펼친 목록은 OS가 그리면서 select의 color를 물려받는다. 배지 색이 항목
+    // 글자까지 번지지 않도록 여기서 끊는다.
     className: `${CONTROL} [&>option]:bg-surface [&>option]:text-fg ${
-      field === 'status' ? STATUS_CLASS[current] ?? '' : ''
-    } ${
       type === 'date' ? 'date-bare' : ''
     } ${error ? 'border-negative' : ''}`,
+  }
+
+  // 배지 위에 투명한 select를 덮는다. 필터 칩과 같은 방식이다 — 닫힌 모습만
+  // 다시 칠하고, 열리는 목록은 OS가 그리는 것을 그대로 쓴다.
+  if (variant === 'badge' && options) {
+    const selected = options.find((o) => o.value === current)
+    return (
+      <div className="min-w-0">
+        <span
+          className={[
+            'relative inline-flex items-center gap-1 rounded-full px-2 py-0.5',
+            'text-[12px] font-medium transition-opacity',
+            TONE_CLASS[toneForStatus(current)],
+            'focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 focus-within:ring-offset-bg',
+            pending ? 'opacity-50' : '',
+          ].join(' ')}
+        >
+          {selected?.label ?? current}
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+            <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          <select
+            aria-label={placeholder ?? '값 선택'}
+            value={current}
+            disabled={pending}
+            onChange={(e) => {
+              setCurrent(e.target.value)
+              save(e.target.value)
+            }}
+            className="absolute inset-0 cursor-pointer text-fg opacity-0 [&>option]:bg-surface [&>option]:text-fg"
+          >
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </span>
+        {error && (
+          <p role="alert" className="mt-0.5 text-[11px] text-negative">
+            {error}
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (

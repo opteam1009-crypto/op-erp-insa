@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createEmployee } from '../actions'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Field, Input, Select } from '@/components/ui/Field'
+import { POSITIONS } from '@/lib/validation/employee'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 
@@ -101,7 +102,14 @@ export function NewEmployeeForm({
               </Select>
             </Field>
             <Field label="직급" htmlFor="position">
-              <Input id="position" name="position" />
+              <Select id="position" name="position" defaultValue="사원">
+                <option value="">선택 안 함</option>
+                {POSITIONS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <Field label="근로형태" htmlFor="employment_type">
               <Select id="employment_type" name="employment_type" required>
