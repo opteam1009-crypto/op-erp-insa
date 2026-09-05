@@ -1,9 +1,12 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-const NAMES = ['dept', 'title', 'type', 'status'] as const
+const NAMES = ['dept', 'title', 'type', 'status', 'q'] as const
+
+/** 한 글자 칠 때마다 조회하지 않도록 기다리는 시간. */
+const SEARCH_DEBOUNCE_MS = 300
 
 interface Option {
   value: string
@@ -89,6 +92,10 @@ export function EmployeeFilters({
   const current = (name: string) => searchParams.get(name) ?? ''
   const filtered = NAMES.some((n) => current(n))
 
+  // 입력값은 URL이 아니라 여기에 있다. 타이핑마다 URL을 갈아치우면 조회가
+  // 도는 동안 커서와 입력이 되감긴다.
+  const [text, setText] = useState(current('q'))
+
   function go(query: string) {
     // replace라서 필터를 몇 번 돌려도 뒤로가기에 그만큼 쌓이지 않는다. 목록을
     // 훑다 나가려면 뒤로가기를 한 번만 누르면 된다.
@@ -102,6 +109,16 @@ export function EmployeeFilters({
     go(params.toString())
   }
 
+  // 입력이 멎으면 URL에 반영한다. 반영된 뒤에는 text와 URL이 같아져 다시 돌지
+  // 않는다 — 이 비교가 없으면 조회가 끝날 때마다 스스로를 또 부른다.
+  useEffect(() => {
+    const applied = searchParams.get('q') ?? ''
+    if (text.trim() === applied) return
+    const timer = setTimeout(() => apply('q', text.trim()), SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, searchParams])
+
   const chips: [string, string, Option[]][] = [
     ['dept', '부서', departments.map((d) => ({ value: d.id, label: d.name }))],
     ['title', '직책', jobTitles.map((t) => ({ value: t, label: t }))],
@@ -112,6 +129,21 @@ export function EmployeeFilters({
   return (
     // form이 아니라 div다. 고르는 즉시 URL이 바뀌므로 제출할 것이 없다.
     <div aria-busy={pending} className="flex flex-wrap items-center gap-1.5">
+      <span className="relative inline-flex items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1.5 text-[13px] focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 focus-within:ring-offset-bg">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-fg-subtle">
+          <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
+          <path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        <input
+          type="search"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="이름 검색"
+          aria-label="이름 검색"
+          className="w-32 bg-transparent text-fg placeholder:text-fg-subtle focus:outline-none"
+        />
+      </span>
+
       {chips.map(([name, label, options]) => (
         <FilterChip
           key={name}
@@ -127,7 +159,10 @@ export function EmployeeFilters({
         <button
           type="button"
           disabled={pending}
-          onClick={() => go('')}
+          onClick={() => {
+            setText('')
+            go('')
+          }}
           className="ml-1 inline-flex items-center gap-1 rounded px-1.5 py-1 text-[12px] text-fg-subtle transition-colors hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
         >
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden>

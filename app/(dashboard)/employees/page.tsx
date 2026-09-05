@@ -39,7 +39,13 @@ const MONTH_OPTIONS = [
 export default async function EmployeesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dept?: string; title?: string; status?: string; type?: string }>
+  searchParams: Promise<{
+    dept?: string
+    title?: string
+    status?: string
+    type?: string
+    q?: string
+  }>
 }) {
   const filters = await searchParams
   // 빈 문자열은 '전체'다. SQL에는 null로 넘겨 조건 자체를 통과시킨다.
@@ -47,6 +53,7 @@ export default async function EmployeesPage({
   const title = filters.title || null
   const status = STATUSES.includes(filters.status ?? '') ? (filters.status as string) : null
   const empType = EMPLOYMENT_TYPES.includes(filters.type ?? '') ? (filters.type as string) : null
+  const query = filters.q?.trim() || null
 
   let employees: EmployeeRow[]
   let departments: DepartmentRow[]
@@ -71,6 +78,9 @@ export default async function EmployeesPage({
           and (${title}::text is null or e.job_title = ${title}::text)
           and (${status}::text is null or e.status = ${status}::text)
           and (${empType}::text is null or e.employment_type = ${empType}::text)
+          -- ilike '%' || q || '%' 대신 strpos를 쓴다. 검색어에 %나 _가 섞여
+          -- 들어오면 ilike는 그걸 와일드카드로 읽어, 친 것과 다른 결과가 나온다.
+          and (${query}::text is null or strpos(lower(e.name), lower(${query}::text)) > 0)
         order by e.employee_number
       `,
       sql`select id, name from departments order by name`,
@@ -87,7 +97,7 @@ export default async function EmployeesPage({
     return <Alert variant="error">사원 목록을 불러오지 못했습니다. 관리자에게 문의하세요.</Alert>
   }
 
-  const filtered = Boolean(dept || title || status || empType)
+  const filtered = Boolean(dept || title || status || empType || query)
 
   return (
     <div>
@@ -196,7 +206,7 @@ export default async function EmployeesPage({
               title={filtered ? '조건에 맞는 사원이 없습니다' : '등록된 사원이 없습니다'}
               description={
                 filtered
-                  ? '필터를 바꾸거나 초기화해 보세요.'
+                  ? '검색어나 필터를 바꾸거나 초기화해 보세요.'
                   : '사원 등록 또는 엑셀 일괄 등록으로 시작하세요.'
               }
             />
