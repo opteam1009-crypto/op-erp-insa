@@ -1,4 +1,4 @@
-import { put, del } from '@vercel/blob'
+import { put, del, get } from '@vercel/blob'
 
 /**
  * 증빙과 급여대장 파일 저장.
@@ -13,6 +13,7 @@ import { put, del } from '@vercel/blob'
 const PREFIX = {
   document: 'documents',
   payroll: 'payroll',
+  extraWork: 'extra-work',
 } as const
 
 export type BlobKind = keyof typeof PREFIX
@@ -41,4 +42,21 @@ export async function storeFile(
 
 export async function deleteFile(pathname: string): Promise<void> {
   await del(pathname)
+}
+
+export interface ReadFileResult {
+  stream: ReadableStream<Uint8Array>
+  contentType: string
+  size: number
+}
+
+/**
+ * 비공개 파일을 읽는다. URL을 아는 것만으로는 열리지 않으므로, 세션을 확인한
+ * 라우트 핸들러가 이걸로 읽어서 흘려보내는 것이 파일을 내려받는 유일한 길이다.
+ * 없으면 null — 호출부가 404로 바꾼다.
+ */
+export async function readFile(pathname: string): Promise<ReadFileResult | null> {
+  const result = await get(pathname, { access: 'private' })
+  if (!result || result.statusCode !== 200) return null
+  return { stream: result.stream, contentType: result.blob.contentType, size: result.blob.size }
 }

@@ -1,13 +1,5 @@
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  getDay,
-  parseISO,
-  startOfWeek,
-} from 'date-fns'
+import { eachDayOfInterval, endOfMonth, endOfWeek, format, getDay, parseISO, startOfWeek } from 'date-fns'
+import { monthLabel } from '@/lib/dates/month'
 import type { BadgeTone } from '@/lib/ui/badge-tone'
 import { KIND_LABELS, type ReminderKind } from '@/lib/notifications/contract-reminders'
 
@@ -131,26 +123,6 @@ export interface CalendarMonth {
 }
 
 export const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const
-
-const MONTH_PARAM = /^\d{4}-(0[1-9]|1[0-2])$/
-
-/**
- * URL의 month 파라미터를 확정한다. 형식이 아니면 오늘이 속한 달로 떨어진다.
- * 손으로 고친 주소나 옛 링크가 빈 화면이나 500이 되지 않게 한다.
- */
-export function resolveMonth(param: string | undefined, today: string): string {
-  if (param && MONTH_PARAM.test(param)) return param
-  return today.slice(0, 7)
-}
-
-export function shiftMonth(month: string, by: number): string {
-  return format(addMonths(parseISO(`${month}-01`), by), 'yyyy-MM')
-}
-
-export function monthLabel(month: string): string {
-  const [year, mm] = month.split('-')
-  return `${year}년 ${Number(mm)}월`
-}
 
 /** "9월 18일 (금)" — 모바일 목록의 날짜 머리글. */
 export function formatDayLabel(date: string): string {

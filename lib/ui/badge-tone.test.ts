@@ -7,6 +7,7 @@ describe('toneForStatus', () => {
     expect(toneForStatus('운영중')).toBe('positive')
     expect(toneForStatus('매출')).toBe('positive')
     expect(toneForStatus('미수금')).toBe('positive')
+    expect(toneForStatus('제출')).toBe('positive')
   })
 
   it('maps 휴직 to warning', () => {
@@ -17,6 +18,7 @@ describe('toneForStatus', () => {
     expect(toneForStatus('퇴사')).toBe('negative')
     expect(toneForStatus('폐업')).toBe('negative')
     expect(toneForStatus('미지급금')).toBe('negative')
+    expect(toneForStatus('미제출')).toBe('negative')
   })
 
   it('maps 매입 to accent so it reads apart from 매출', () => {

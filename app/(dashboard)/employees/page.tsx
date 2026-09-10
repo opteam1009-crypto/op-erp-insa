@@ -6,9 +6,10 @@ import { Alert } from '@/components/ui/Alert'
 import { Badge } from '@/components/ui/Badge'
 import { hueForDepartmentIndex } from '@/lib/ui/badge-tone'
 import { buttonClass } from '@/lib/ui/button-class'
+import { InlineCell } from '@/components/ui/InlineCell'
 import { NewEmployeeModalButton } from './NewEmployeeModalButton'
-import { InlineCell } from './InlineCell'
 import { EmployeeFilters } from './EmployeeFilters'
+import { updateEmployeeField } from './actions'
 import { EmployeeTabs } from './EmployeeTabs'
 
 interface EmployeeRow {
@@ -181,16 +182,14 @@ export default async function EmployeesPage({
                 </TD>
                 <TD className="w-[110px]">
                   <InlineCell
-                    id={emp.id}
-                    field="job_title"
+                    onSave={updateEmployeeField.bind(null, emp.id, 'job_title')}
                     value={emp.job_title ?? ''}
                     placeholder="-"
                   />
                 </TD>
                 <TD className="w-[100px]">
                   <InlineCell
-                    id={emp.id}
-                    field="status"
+                    onSave={updateEmployeeField.bind(null, emp.id, 'status')}
                     value={emp.status}
                     variant="badge"
                     placeholder="재직상태"
@@ -199,24 +198,21 @@ export default async function EmployeesPage({
                 </TD>
                 <TD className="w-[150px]">
                   <InlineCell
-                    id={emp.id}
-                    field="contract_end_date"
+                    onSave={updateEmployeeField.bind(null, emp.id, 'contract_end_date')}
                     type="date"
                     value={emp.contract_end_date ?? ''}
                   />
                 </TD>
                 <TD className="w-[150px]">
                   <InlineCell
-                    id={emp.id}
-                    field="regular_conversion_date"
+                    onSave={updateEmployeeField.bind(null, emp.id, 'regular_conversion_date')}
                     type="date"
                     value={emp.regular_conversion_date ?? ''}
                   />
                 </TD>
                 <TD className="w-[90px]">
                   <InlineCell
-                    id={emp.id}
-                    field="salary_negotiation_month"
+                    onSave={updateEmployeeField.bind(null, emp.id, 'salary_negotiation_month')}
                     value={emp.salary_negotiation_month?.toString() ?? ''}
                     options={MONTH_OPTIONS}
                   />

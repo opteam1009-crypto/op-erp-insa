@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { isNavItemActive, type NavGroup } from '@/lib/nav/items'
+import { activeNavHref, type NavGroup } from '@/lib/nav/items'
 import { signOut } from '@/lib/auth/actions'
 import { buttonClass } from '@/lib/ui/button-class'
 import { Icon } from './icons'
@@ -26,6 +26,9 @@ export function Sidebar({
   isDesktop: boolean
 }) {
   const pathname = usePathname()
+  // 강조할 항목은 하나다. 하위 메뉴가 활성이면 부모는 강조하지 않는다 —
+  // 부모의 href가 하위 경로의 접두사라 둘 다 맞기 때문에 여기서 하나로 정한다.
+  const activeHref = activeNavHref(nav, pathname)
   // md 미만이면서 닫혀 있을 때만 "화면 밖" 상태다. md 이상에서는 open 값과
   // 무관하게 항상 false — "닫혀 있으면 inert"로 단순화하면 데스크톱에서
   // 사이드바 전체가 못 쓰게 된다.
@@ -68,7 +71,7 @@ export function Sidebar({
             </p>
             <ul className="flex flex-col gap-0.5">
               {group.items.map((item) => {
-                const active = isNavItemActive(pathname, item.href)
+                const active = item.href === activeHref
                 return (
                   <li key={item.href}>
                     <Link
@@ -90,6 +93,38 @@ export function Sidebar({
                       <Icon name={item.icon} />
                       {item.label}
                     </Link>
+                    {/* 하위 메뉴는 늘 펼쳐 둔다. 다섯 개짜리 메뉴에서 접었다
+                        펴는 동작은 클릭만 하나 늘린다. 부모 아이콘 폭만큼
+                        들여써 부모에 속한 것으로 읽힌다. */}
+                    {item.children && (
+                      <ul className="mt-0.5 flex flex-col gap-0.5">
+                        {item.children.map((child) => {
+                          const childActive = child.href === activeHref
+                          return (
+                            <li key={child.href}>
+                              <Link
+                                href={child.href}
+                                aria-current={childActive ? 'page' : undefined}
+                                className={[
+                                  'relative flex items-center rounded-md py-1.5 pl-[38px] pr-2 text-[13px] transition-colors',
+                                  childActive
+                                    ? 'bg-surface-3 font-medium text-fg'
+                                    : 'text-fg-muted hover:bg-surface-3/60 hover:text-fg',
+                                ].join(' ')}
+                              >
+                                {childActive && (
+                                  <span
+                                    aria-hidden
+                                    className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-accent"
+                                  />
+                                )}
+                                {child.label}
+                              </Link>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
                   </li>
                 )
               })}

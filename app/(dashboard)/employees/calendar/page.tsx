@@ -4,12 +4,8 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Alert } from '@/components/ui/Alert'
 import { buttonClass } from '@/lib/ui/button-class'
 import { todayInSeoul } from '@/lib/dates/today'
-import {
-  buildCalendarMonth,
-  resolveMonth,
-  shiftMonth,
-  type CalendarSource,
-} from '@/lib/calendar/employee-calendar'
+import { resolveMonth, shiftMonth } from '@/lib/dates/month'
+import { buildCalendarMonth, type CalendarSource } from '@/lib/calendar/employee-calendar'
 import { NewEmployeeModalButton } from '../NewEmployeeModalButton'
 import { EmployeeTabs } from '../EmployeeTabs'
 import { CalendarView } from './CalendarView'

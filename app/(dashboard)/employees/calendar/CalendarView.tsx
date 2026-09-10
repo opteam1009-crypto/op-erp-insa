@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { TONE_CLASS } from '@/components/ui/Badge'
-import { buttonClass } from '@/lib/ui/button-class'
+import { MonthNav } from '@/components/ui/MonthNav'
 import type { BadgeTone } from '@/lib/ui/badge-tone'
 import {
   CALENDAR_GROUPS,
@@ -91,25 +91,7 @@ export function CalendarView({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1">
-          <Link href={nav.prev} aria-label="이전 달" className={buttonClass('ghost', 'icon')}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="m15 6-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-          {/* 고정 폭이라 "9월"과 "12월" 사이를 오갈 때 화살표가 움직이지 않는다. */}
-          <h2 className="tnum min-w-[7em] text-center text-[15px] font-semibold text-fg">
-            {data.label}
-          </h2>
-          <Link href={nav.next} aria-label="다음 달" className={buttonClass('ghost', 'icon')}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-          <Link href={nav.today} className={buttonClass('secondary', 'sm', 'ml-1')}>
-            오늘
-          </Link>
-        </div>
+        <MonthNav label={data.label} prevHref={nav.prev} nextHref={nav.next} todayHref={nav.today} />
 
         <div className="flex flex-wrap items-center gap-1">
           {CALENDAR_GROUPS.map((group) => {

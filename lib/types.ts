@@ -50,6 +50,22 @@ export interface PayrollRecord {
   parse_status: 'parsed' | 'fallback' | 'pending'
 }
 
+export interface ExtraWorkRecord {
+  id: string
+  employee_id: string
+  kind: '연장근무' | '휴일근무'
+  /** YYYY-MM */
+  period: string
+  /** numeric(5,1). 드라이버가 문자열로 돌려준다. */
+  hours: string | null
+  note: string | null
+  submitted_at: string | null
+  file_path: string | null
+  file_name: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface FranchiseStore {
   id: string
   name: string

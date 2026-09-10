@@ -2,9 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateEmployeeField, type InlineField } from './actions'
 import { TONE_CLASS } from '@/components/ui/Badge'
 import { toneForStatus } from '@/lib/ui/badge-tone'
+
+/** 서버 액션이 돌려주는 모양. error가 null이면 저장된 것이다. */
+export interface InlineSaveResult {
+  error: string | null
+}
 
 const CONTROL =
   'w-full rounded border border-transparent bg-transparent px-1.5 py-1 text-[13px] text-fg ' +
@@ -12,10 +16,17 @@ const CONTROL =
   'focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent ' +
   'disabled:opacity-50'
 
+/**
+ * 표 안에서 한 칸만 고치는 입력. 사원 목록과 연장·휴일근무 정산이 같이 쓴다.
+ *
+ * 어느 행의 어느 열인지는 모른다 — 호출부가 서버 액션에 그 정보를 bind해서
+ * onSave로 넘긴다. 서버 컴포넌트에서 `action.bind(null, id, field)`로 만든
+ * 함수는 직렬화되어 클라이언트로 내려오므로, 클로저 없이도 행마다 다른
+ * 저장 함수를 붙일 수 있다.
+ */
 interface Props {
-  id: string
-  field: InlineField
   value: string
+  onSave: (next: string) => Promise<InlineSaveResult>
   /** select면 고를 값들. 저장되는 value와 화면에 보이는 label을 나눠 받는다. */
   options?: { value: string; label: string }[]
   type?: 'text' | 'date'
@@ -26,9 +37,8 @@ interface Props {
 }
 
 export function InlineCell({
-  id,
-  field,
   value,
+  onSave,
   options,
   type = 'text',
   placeholder,
@@ -43,7 +53,7 @@ export function InlineCell({
     // 안 바뀐 값으로 서버를 두드리지 않는다. 날짜/텍스트는 blur마다 불린다.
     if (next === value) return
     startTransition(async () => {
-      const result = await updateEmployeeField(id, field, next)
+      const result = await onSave(next)
       if (result.error) {
         setError(result.error)
         setCurrent(value) // 저장 못 했으면 화면도 되돌린다. 반영된 것처럼 보이면 안 된다.

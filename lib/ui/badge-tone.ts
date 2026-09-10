@@ -32,6 +32,9 @@ const TONE_BY_STATUS: Record<string, BadgeTone> = {
   폐업: 'negative',
   미지급금: 'negative',
   매입: 'accent',
+  // 연장·휴일근무 서류. 미제출이 곧 할 일이라 빨강이다.
+  제출: 'positive',
+  미제출: 'negative',
   // 근로형태. 재직상태(재직 초록 / 퇴사 빨강)와 나란히 놓이는 열이라 그쪽과
   // 겹치지 않는 색을 쓴다 — 둘 다 초록이면 어느 쪽을 보고 있는지 흐려진다.
   정규직: 'sky',

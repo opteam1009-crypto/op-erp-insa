@@ -30,15 +30,18 @@ export function TR({ children, className }: { children: React.ReactNode; classNa
 export function TH({
   children,
   align = 'left',
+  className,
 }: {
   children?: React.ReactNode
   align?: 'left' | 'right'
+  /** 좁은 화면에서 두 글자 머리글이 세로로 꺾이지 않게 whitespace-nowrap을 줄 때 쓴다. */
+  className?: string
 }) {
   return (
     <th
       className={`px-3 py-2.5 text-[12px] font-medium tracking-wide text-fg-subtle ${
         align === 'right' ? 'text-right' : 'text-left'
-      }`}
+      } ${className ?? ''}`}
     >
       {children}
     </th>
