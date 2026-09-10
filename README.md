@@ -140,3 +140,21 @@ const rows = await sql`select * from employees where id = ${id}`
 
 "현재 사원 목록 다운로드"가 주는 파일은 위 열 구성과 같으므로, 받아서 고친 뒤
 그대로 다시 올릴 수 있습니다.
+
+## 사원 일정 캘린더
+
+사원 관리의 **캘린더** 탭(`/employees/calendar`)이 사원별 날짜를 달력 한 장에
+모아 보여줍니다. 종류별로 색이 다르고, 범례를 눌러 켜고 끌 수 있습니다.
+
+| 종류 | 컬럼 | 표시 |
+| --- | --- | --- |
+| 계약만료일 | `contract_end_date` | 해당 날짜 칸 |
+| 정규직전환 평가일 · 발표일 | `contract_review_date` · `contract_announce_date` | 해당 날짜 칸 |
+| 정규직전환일 | `regular_conversion_date` | 해당 날짜 칸 |
+| 연봉협상 평가일 · 발표일 | `salary_review_date` · `salary_announce_date` | 해당 날짜 칸 |
+| 연봉협상월 | `salary_negotiation_month` | 날짜가 아니라 달이므로 격자 위 띠에 대상자 이름으로 |
+
+- 퇴사자는 기본으로 빠집니다. 지난 계약을 되짚어 볼 때만 "퇴사자 포함"을 켭니다.
+- 달은 `?month=YYYY-MM`으로 주소에 남으므로 특정 달을 링크로 공유할 수 있습니다.
+  이달은 파라미터 없이 `/employees/calendar`입니다.
+- 캘린더에서 값을 고치지는 않습니다. 목록 탭의 인라인 편집이나 사원 상세에서 고칩니다.

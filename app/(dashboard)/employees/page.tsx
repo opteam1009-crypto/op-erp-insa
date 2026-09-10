@@ -9,6 +9,7 @@ import { buttonClass } from '@/lib/ui/button-class'
 import { NewEmployeeModalButton } from './NewEmployeeModalButton'
 import { InlineCell } from './InlineCell'
 import { EmployeeFilters } from './EmployeeFilters'
+import { EmployeeTabs } from './EmployeeTabs'
 
 interface EmployeeRow {
   id: string
@@ -121,6 +122,8 @@ export default async function EmployeesPage({
           </>
         }
       />
+
+      <EmployeeTabs active="list" />
 
       {/* 카드로 감싸지 않는다. 표 위에 얹는 보조 컨트롤이라 테두리 상자를
           하나 더 두면 정작 봐야 할 표와 무게가 비슷해진다. */}

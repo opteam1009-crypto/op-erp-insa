@@ -2,21 +2,13 @@ import { requireSession } from '@/lib/auth/current-user'
 import { NAV_GROUPS } from '@/lib/nav/items'
 import { AppShell } from '@/components/shell/AppShell'
 import { sql } from '@/lib/db/sql'
+import { todayInSeoul } from '@/lib/dates/today'
 import {
   collectUpcoming,
   UPCOMING_WINDOW_DAYS,
   type UpcomingItem,
   type UpcomingSource,
 } from '@/lib/notifications/upcoming'
-
-/**
- * 서버가 UTC로 도는데 쓰는 사람은 한국에 있다. new Date()의 날짜를 그대로 쓰면
- * 한국 시간 오전 9시 이전에는 '어제'가 오늘이 되어, 오늘 일정이 하루 늦게
- * 종에 걸린다. en-CA 로캘의 출력이 YYYY-MM-DD다.
- */
-function todayInSeoul(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
-}
 
 async function loadUpcoming(): Promise<UpcomingItem[]> {
   const today = todayInSeoul()
